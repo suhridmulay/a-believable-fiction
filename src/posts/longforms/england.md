@@ -23,3 +23,8 @@ For a part of it's history, the North Sea, was not a sea and instead a great nor
 
 ## New Stone
 
+Aegean ancestry - replacement of hunter gatherers - what kind of crops? - what kind of animals - artifacts? - culrue and religion
+
+## Sources
+
+- https://www.nhm.ac.uk/discover/news/2019/april/neolithic-britain-where-did-the-first-farmers-come-from.html
