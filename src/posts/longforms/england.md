@@ -1,7 +1,7 @@
 ---
 layout: post.njk
 title: An Outsiders Look at the History of Britain
-tag: post
+tags: post
 ---
 
 _This is in large part inspired from my reading of Bernard Cornwell's [Saxon Stories](https://www.bernardcornwell.net/series/the-last-kingdom-series/) which is a fantastic book series_
