@@ -88,4 +88,11 @@
 		margin-left: 2ch;
 		margin-block: 0.5em;
 	}
+
+	img {
+		width: 100%;
+		object-fit: cover;
+		border: 4px solid #003153;
+		padding: 4px;
+	}
 }

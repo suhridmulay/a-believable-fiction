@@ -31,6 +31,8 @@ function formatRfc822(date) {
     return day + ", " + rest.join(" ");
 }
 
+
+
 export default function (eleventyConfig) {
 	// setup global variables
 	eleventyConfig.addGlobalData("now", {
@@ -55,4 +57,7 @@ export default function (eleventyConfig) {
 	for (let stylesheet of CSS_FILES) {
 		eleventyConfig.addPassthroughCopy(stylesheet);
 	}
+
+	// copy over assets (images and the like)
+	eleventyConfig.addPassthroughCopy("assets")
 }
