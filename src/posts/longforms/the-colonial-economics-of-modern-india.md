@@ -52,8 +52,8 @@ Revenue extraction from its people has been, and will remain one of the core pil
 
 - Operational Expenses, staff salaries, running costs like electricity or water.
 - Capital expenditure in the form of roads, bridges, rails, highways, ports, airports etc.
-- Social Welfare programs
-- Military Spending
+- Social Welfare programs.
+- Military Spending.
 - Addressing existing Debt.
 
 Let's get the operational expenses out of the way, operational expense is inevitable for the government. At this scale it needs to pay salaries of several professional bureaucrats plus the usual costs of paperwork. It is however also largely a payment made to the English speaking IAS class of the country.
@@ -70,7 +70,7 @@ And at the very end, coming to the most tragic part of this almost colonial rela
 
 Indian Government has had a rocky relationship with the farmer. Starting with British India who's absentee landlord policies created a Zamindar class of absentee landlords, followed by market distortions to grow cash crops instead of food and the disastrous recurring famines which plagued British India. By contrast the modern Indian state's relation with the cultivator seems much more harmonious. It is, however still based on the same premises as that of colonial India. Where British India distorted markets to favour cash crops, Modern India does it to favour selective food crops via measures like Minimum Support Prices. Where there used to be an intermediary class of Zamindars is now the institution of APMC.
 
-The state uses market controls like subsidies to encourage the production of food crops, or devastating cash crops like Sugar in the dry regions of Interior Karnataka and Maharashtra. The relentless market pressure today has led to a marked drop in soil quality, established an intermediary class that regularly underpays cultivators, discouraged the development of cold storage and kept the food market in India essentially under lock and key. Hostage to a rent seeking class which extracts value by the virtue of being the intermediary between the farmers and the formal economy of India.
+The state uses market controls like subsidies to encourage the production of food crops, or devastating cash crops like [Sugar in the dry regions of Interior Karnataka and Maharashtra](https://thewire.in/environment/the-deadly-toll-of-sugar-on-marathwadas-soil). The relentless market pressure today has led to a marked [drop in soil quality](https://www.downtoearth.org.in/agriculture/punjab-dead-soil-in-indias-food-bowl-is-about-to-summon-the-ghost-of-infertility), established an intermediary class that regularly [underpays cultivators](https://journals.sagepub.com/doi/10.1177/22779787231209169), discourages the development of cold storage and keeps the food market in India essentially under lock and key. A rent seeking class which extracts value by the virtue of being the intermediary between the farmers and the formal economy of India.
 
 For all the rhetoric of <span lang="hi">जय जवान जय किसान</span>, the government of India is not really all that different from British India, sure the skin is different, but the underlying systems being run are very much point to point identical.
 
