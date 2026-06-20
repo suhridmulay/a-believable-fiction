@@ -38,8 +38,21 @@ i,
 em,
 a {
 	font-family: var(--font-family-italics), cursive;
-	line-height: 1;
 }
+
+/* #region - responsive styles */
+.desktop-only {
+	@media screen and (width < 1280px) {
+		display: none;
+	}
+}
+
+.mobile-only {
+	@media screen and (width >= 1280px) {
+		display: none;
+	}
+}
+/* #endregion */
 
 /* headings */
 .heading-container {
@@ -207,12 +220,16 @@ a {
 			width: 100%;
 			display: flex;
 			justify-content: space-around;
+			align-items: center;
 
 			li {
 				list-style-type: none;
 
 				a {
 					color: inherit;
+					display: flex;
+					align-items: baseline;
+					gap: 8px;
 				}
 			}
 		}
