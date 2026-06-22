@@ -1,8 +1,8 @@
 ---
 title: IndieSocial
 description: ideas on expanding the indieweb to non technical audiences
-published: Mon, 22 Jun 2026 17:00 +05:30
-publishedISO: 
+published: Mon, 22 Jun 2026 13:30:00 GMT
+publishedISO: 2026-06-22T13:30:00.000Z
 layout: post.njk
 tags: post
 draft: false
