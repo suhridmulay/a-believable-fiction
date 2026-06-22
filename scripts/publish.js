@@ -7,40 +7,49 @@ function printUsage() {
 	console.log("USAGE: node publish.js --file <path-to-file>");
 }
 
-const argv = process.argv;
-const args = {};
-for (let i = 0; i < argv.length; i++) {
-	if (argv[i] == "--file") {
-		i++;
-		args.target = argv[i];
-	}
-	if (argv[i] == "--date" || argv[i] == "-d") {
-		i++;
-		args.date = new Date(argv[i]);
-	}
-	if (argv[i] == "--round-to-hour") {
-		args.roundToHour = true;
+class ArgumentError extends Error {
+	constructor(msg) {
+		super(msg);
 	}
 }
 
-if (!args.target) {
-	console.error("[ERROR] no target specified, exiting the program");
-	printUsage();
-	process.exitCode = 1;
-	throw new Error("incorrect use of program");
-}
+function parseArgs(argv) {
+	const args = {
+		roundToHour: false,
+	};
+	for (let i = 0; i < argv.length; i++) {
+		if (argv[i] == "--file") {
+			i++;
+			args.target = argv[i];
+		}
+		if (argv[i] == "--date" || argv[i] == "-d") {
+			i++;
+			try {
+				args.date = new Date(argv[i]);
+			} catch (err) {
+				throw new ArgumentError("[ERROR] invalid date");
+			}
+		}
+		if (argv[i] == "--round-to-hour") {
+			args.roundToHour = true;
+		}
+	}
 
-if (!args.date) {
-	console.warn("[WARN] no date specified will default to current");
-	args.date = new Date();
-}
+	if (!args.target) {
+		throw new ArgumentError("[ERROR] target not specified");
+	}
 
-if (args.roundToHour) {
-	console.info("[INFO] will round to nearest hour");
-}
+	if (!args.date) {
+		console.warn("[WARN] no date specified will default to current");
+		args.date = new Date();
+	}
 
-const fileContent = readFileSync(args.target, { encoding: "utf8" });
-const { data, content } = matter(fileContent);
+	if (args.roundToHour) {
+		console.info("[INFO] will round to nearest hour");
+	}
+
+	return args;
+}
 
 function formatRfc822(date) {
 	const options = {
@@ -64,19 +73,58 @@ function formatRfc822(date) {
 	return day + ", " + rest.join(" ");
 }
 
-let targetPublishDate = args.date;
-if (args.roundToHour) {
-	targetPublishDate.setMinutes(0);
-	targetPublishDate.setSeconds(0);
-	targetPublishDate.setMilliseconds(0);
+function publish(originalMetadata, publishDate) {
+	const rfc822Date = formatRfc822(publishDate);
+	// somehow putting this directly causes it to get ISO stringified
+	// but using something like the toISOString() function causes it to have quotes around it
+	const isoDate = publishDate;
+	return {
+		...originalMetadata,
+		draft: false,
+		published: rfc822Date,
+		publishedISO: isoDate,
+	};
 }
 
-const rfc822Date = formatRfc822(targetPublishDate);
-const isoDate = targetPublishDate.toISOString();
+function main() {
+	const argv = process.argv;
+	let parsedArgs;
+	try {
+		parsedArgs = parseArgs(argv);
+	} catch (err) {
+		if (err instanceof ArgumentError) {
+			printUsage();
+			return 1;
+		}
+	}
 
-data.published = rfc822Date;
-data.publishedISO = isoDate;
-data.draft = false;
+	let data, content;
+	try {
+		const fileContent = readFileSync(parsedArgs.target, { encoding: "utf8" });
+		const fileMatter = matter(fileContent);
+		data = fileMatter.data;
+		content = fileMatter.content;
+	} catch (err) {
+		console.error(`[ERROR] unable to read file at ${parsedArgs.target}`);
+		return 1;
+	}
 
-const post = matter.stringify(content, data);
-writeFileSync(args.target, post);
+	let targetPublishDate = parsedArgs.date;
+	if (parsedArgs.roundToHour) {
+		targetPublishDate.setMinutes(0);
+		targetPublishDate.setSeconds(0);
+		targetPublishDate.setMilliseconds(0);
+	}
+
+	try {
+		const publishedData = publish(data, targetPublishDate);
+		const post = matter.stringify(content, publishedData);
+		writeFileSync(parsedArgs.target, post);
+	} catch (err) {
+		console.error("[ERROR] unable to write to file");
+		return 1;
+	}
+	return 0;
+}
+
+process.exitCode = main();
