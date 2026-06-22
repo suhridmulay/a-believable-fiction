@@ -8,6 +8,8 @@ tags: post
 draft: true
 ---
 
+_If you're looking for the TL;DR a) boo! shame on you, b) scroll down to the suggestions section_
+
 ## The Indie Web
 
 The Indie Web or the small web refers to a collection of web entities which exist on a more familiar and personal network, utilising the decentralised nature of the internet for personal communications, be those through blogs, feeds, link aggregations or something else. The premise of Indie Web - at least to me - is to use the inherently decentralised nature of the internet as a front for human to human interaction, away from the corporate web which often serves "business needs".
@@ -27,9 +29,22 @@ The goal here, is to capture some of the user audience these platforms have, and
 - Followed by **Setup Complexity:** traditional media is largely uncomplex to setup, once signed in you get a lot of features for free with the platform. The platform provides image hosting, video hosting, storing your content, managing your privacy, managing your content etc. This means the end user has to spend less time tinkering and can get to the objective of interacting with their acquaintances much quicker. On the Indie Web, if you're unfortunate, you would need a lot more setup to get the same done. This for a lot of people is a let downer. Indie Web setup should ideally be just as seamless as a managed platform.
 - And at the end, **Accountability:** traditional social media on the internet places a lot of accountability and power in the hands of entities under the ambit of the law. We as people, usually like laws. IndieWeb in some sense is like the wild west, a personal website advocating for Nazism can survive forever. A post advocating the utter destruction of the state can be dropped by the platform when requested by the lawful government. The managed web, gives us - the community - the power and force of legal enforcement. The Indie Web promises us the freedom of the Internet and expression.
 
+## Distilled Suggestions
+
+- IndieWeb's strength lies in its federated nature, and relative liquidity of platforms. A content publisher on the IndieWeb is only limited by creativity, not by the medium of the platform.
+- Consequently IndieWeb's biggest gap remains in how content becomes interactive, currently the prototype to do so, i.e. links are relatively passive compared to the richness of comments, and mentions which are present on other platforms. Commenting and mentioning need to become easier for greater adoption of the IndieWeb.
+- Onboarding currently requires owning a domain, this has actual currency costs involved, unless this becomes free or justifies its currency cost, IndieWeb will have limited commercial appeal. This is partially solved by things liek Github hosting, but 
+- There is a genuine problem with getting started and what people want out of the IndieWeb. The setup process can involve some amount of work to get running, contrast this to Phone number OTP (which while insecure, is a huge UX win) + sign in which is a two step process. I think IndieWeb onboarding experience can be made much smoother.
+
 ## Conclusion
 
-In writing this post, I have had the opportunity to reflect on the IndieWeb more holistically, what does it mean to be a part of the IndieWeb, and to the problem statement framing at the very start of the post. IndieWeb exists to foster human to human connection where the internet is a medium and the value it generates lies in enriching the lives of everyday people because a mother can read from her daughter on the other side of the globe. Traditional social media, has been a business founded on solving these problems, however through a case of misplaced incentives has now become a platform for moneyed interests which do disservice to the original goals of the platform.
+In writing this post, I have had the opportunity to reflect on the IndieWeb. What does it mean to be a part of the IndieWeb? and to the problem statement framing at the very start of the post. IndieWeb exists to foster human to human connection where the internet is a medium and the value it generates lies in enriching the lives of everyday people because a mother can read from her daughter on the other side of the globe. Traditional social media, has been a business founded on solving these problems, however through a case of misplaced incentives has now become a platform for moneyed interests which do disservice to the original goals of the platform.
+
+Call me a romantic, but I still believe somewhere deep down Facebook truly started with a belief in 
+
+> To make the world more open and connected
+
+Is something a platform should strive by and to a large extent it did make it easier. My vision for the Indie Web is similar, where the world is open and connected, but not backed by a platform, but a shared common understanding in the common good of the internet and based upon common convention or protocol.
 
 ---
 
