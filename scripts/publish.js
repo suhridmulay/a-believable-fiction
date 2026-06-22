@@ -13,24 +13,36 @@ class ArgumentError extends Error {
 	}
 }
 
+/**
+ * Parses arguments
+ * @param {string[]} argv
+ * @returns {{ target: string, date: Date, roundToHour: boolean }} parsed arguments
+ */
 function parseArgs(argv) {
 	const args = {
 		roundToHour: false,
 	};
+	const argc = argv.length;
 	for (let i = 0; i < argv.length; i++) {
-		if (argv[i] == "--file") {
+		if (argv[i] === "--file") {
 			i++;
+			if (i > argc) {
+				throw new ArgumentError("[ERROR] argument given but not specified: 'file'");
+			}
 			args.target = argv[i];
 		}
-		if (argv[i] == "--date" || argv[i] == "-d") {
+		if (argv[i] === "--date" || argv[i] === "-d") {
 			i++;
+			if (i > argc) {
+				throw new ArgumentError("[ERROR] argument given but not specified: 'date'");
+			}
 			try {
 				args.date = new Date(argv[i]);
 			} catch (err) {
 				throw new ArgumentError("[ERROR] invalid date");
 			}
 		}
-		if (argv[i] == "--round-to-hour") {
+		if (argv[i] === "--round-to-hour") {
 			args.roundToHour = true;
 		}
 	}
@@ -93,9 +105,12 @@ function main() {
 		parsedArgs = parseArgs(argv);
 	} catch (err) {
 		if (err instanceof ArgumentError) {
+			console.error(err.message);
 			printUsage();
 			return 1;
 		}
+		// rethrow unexpected errors
+		throw err;
 	}
 
 	let data, content;
