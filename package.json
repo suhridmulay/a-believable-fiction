@@ -28,7 +28,6 @@
 	},
 	"devDependencies": {
 		"@11ty/gray-matter": "^2.1.0",
-		"@types/node": "^26.0.0",
-		"yaml": "^2.9.0"
+		"@types/node": "^26.0.0"
 	}
 }

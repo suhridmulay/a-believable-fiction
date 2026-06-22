@@ -1,10 +1,26 @@
 /// <reference types="node" />
 
+/**
+ * This script updates file metadata to mark it as published
+ */
+
 import { readFileSync, writeFileSync } from "node:fs";
 import matter from "@11ty/gray-matter";
 
+const USAGE = `
+Use this script to alter a file metadata and mark it as published.
+This script will remove the draft tag, and set a published date for the post.
+USAGE:
+    node publish.js --file <path-to-file> [--date <publish-date> --round-to-hour]
+
+ARGUMENTS:
+    --file: specifies which file to target for publishing
+    --date (optional): specify a publish date. Uses the current date when not specified
+    --round-to-hour (optional): round publish date to nearest hour in local timezone. disabled by default.
+`;
+
 function printUsage() {
-	console.log("USAGE: node publish.js --file <path-to-file>");
+	console.log(USAGE);
 }
 
 class ArgumentError extends Error {
@@ -24,16 +40,16 @@ function parseArgs(argv) {
 	};
 	const argc = argv.length;
 	for (let i = 0; i < argv.length; i++) {
-		if (argv[i] === "--file") {
+		if (argv[i] === "--file" || argv[i] === "--target") {
 			i++;
-			if (i > argc) {
+			if (i >= argc) {
 				throw new ArgumentError("[ERROR] argument given but not specified: 'file'");
 			}
 			args.target = argv[i];
 		}
 		if (argv[i] === "--date" || argv[i] === "-d") {
 			i++;
-			if (i > argc) {
+			if (i >= argc) {
 				throw new ArgumentError("[ERROR] argument given but not specified: 'date'");
 			}
 			try {
