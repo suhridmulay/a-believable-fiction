@@ -11,7 +11,8 @@ POSTS_TEMPLATE_PATH="$CURRENT_SCRIPT_FOLDER/templates/posts.template.md"
 # If the user is on main branch warn the user and exit
 BRANCH=$(git branch --show-current)
 if [[ "$BRANCH" == "$BASE_GIT_BRANCH" ]]; then
-    echo "[WARNING] it is inadvisable to push posts from main."
+    echo "[ERROR] it is inadvisable to push posts from main."
+    echo "[ERROR] not creating blog. Please switch branch."
     exit 1
 fi
 
