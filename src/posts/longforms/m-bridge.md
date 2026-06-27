@@ -1,11 +1,11 @@
 ---
 title: M Bridge
 description: Wake up babe, the Chinese just killed SWIFT
-published:
-publishedISO:
+published: Sat, 27 Jun 2026 19:30:00 GMT
+publishedISO: 2026-06-27T19:30:00.000Z
 layout: post.njk
 tags: post
-draft: true
+draft: false
 ---
 
 ## The Global Greenback
