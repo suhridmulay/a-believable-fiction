@@ -1,11 +1,11 @@
 ---
 title: The Many Masks of Me.
 description: Participating in the IndieWeb carnival, with a blog on Masks, Identities and Cosplay
-published:
-publishedISO:
+published: Wed, 15 Jul 2026 13:30:00 GMT
+publishedISO: 2026-07-15T13:30:00.000Z
 layout: post.njk
 tags: post
-draft: true
+draft: false
 ---
 
 <style>
