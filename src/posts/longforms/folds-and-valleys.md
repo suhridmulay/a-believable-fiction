@@ -1,11 +1,11 @@
 ---
 title: Folds And Valleys
 description: Reflecting on the first time I saw mountains
-published:
-publishedISO:
+published: Sat, 18 Jul 2026 11:30:00 GMT
+publishedISO: 2026-07-18T11:30:00.000Z
 layout: post.njk
 tags: post
-draft: true
+draft: false
 ---
 
 _This is in response to a prompt "Capture a moment of awe you felt as a young(er) person" at a IndieWebClub Bangalore Meetup_
