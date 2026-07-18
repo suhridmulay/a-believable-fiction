@@ -59,7 +59,7 @@ export default function (eleventyConfig) {
 	eleventyConfig.addFilter("humanFriendlyDate", (date) => {
 		const d = new Date(date);
 		return HumanFriendlyDateFormat.format(d);
-	});
+    });
 
 	// setup global variables
 	eleventyConfig.addGlobalData("now", {

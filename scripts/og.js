@@ -1,0 +1,123 @@
+/// <reference types="node" />
+
+
+/**
+ * This script adds opengraph metadata to the provided paths
+ */
+
+import { readFileSync, writeFileSync } from "node:fs";
+import markdownit from 'markdown-it';
+import matter from "@11ty/gray-matter";
+
+function parseArgs(argv) {
+    let args = {
+        paths: []
+    };
+    let isProcessingPaths = false;
+    for (let i = 0; i < argv.length; i++) {
+        const arg = argv[i];
+        if (arg === '--paths') {
+            isProcessingPaths = true;
+            continue;
+        }
+        if (isProcessingPaths) {
+            args.paths.push(arg);
+        }
+    }
+    return args;
+}
+
+const markdownParser = markdownit({ html: true });
+const markdownItRenderer = markdownParser.renderer
+
+function extractFirstParagraphContent(content) {
+    const parsedMarkdownTokens = markdownParser.parse(content);
+
+    let firstParagraph = "";
+
+    for (let i = 0; i < parsedMarkdownTokens.length &&  !firstParagraph; i++) {
+        let currentToken = parsedMarkdownTokens[i];
+        if (currentToken.type === "paragraph_open") {
+            const paragraphContentToken = parsedMarkdownTokens[i + 1];
+            if (paragraphContentToken) {
+                firstParagraph = paragraphContentToken.content;
+            }
+        }
+    }
+
+    return firstParagraph;
+}
+
+function extractHeadingFromFrontmatter(content) {
+    const parsed = matter(content);
+    const data = parsed.data;
+    const title = data.title;
+    return title;
+}
+
+
+
+function generateOpenGraphMetadata(content) {
+    const firstParagraph = extractFirstParagraphContent(content);
+    const heading = extractHeadingFromFrontmatter(content);
+
+    return {
+        title: heading,
+        description: firstParagraph,
+    }
+}
+
+function attachOpengraphMetadata(content, opengraphData) {
+    const frontmatter = matter(content);
+    let data = frontmatter.data;
+    let text = frontmatter.content;
+    data.og = {
+        title: opengraphData.title,
+        description: opengraphData.description,
+        image: opengraphData.image
+    }
+    return matter.stringify(text, data);
+}
+
+function printUsage() {
+    const executable = process.argv0;
+    return `${executable} --paths <space-separated-paths>`
+}
+
+function main() {
+    const args = parseArgs(process.argv);
+    if (!args.paths || args.paths.length === 0) {
+        console.error("[ERROR] no paths provided");
+        printUsage();
+        return 1;
+    }
+
+    console.info(`[INFO] will be processing ${args.paths.length} files`);
+
+    for (let path of args.paths) {
+        try {
+            const fileContent = readFileSync(path, "utf-8");
+            console.log("[INFO] read file");
+            const openGraphMetadata = generateOpenGraphMetadata(fileContent);
+            console.log("[INFO] generated opengraph metadata");
+            const fileContentWithAddedOpnegraphData = attachOpengraphMetadata(fileContent, openGraphMetadata);
+            writeFileSync(path, fileContentWithAddedOpnegraphData)
+            console.log("[INFO] wrote file with metadata")
+        } catch (err) {
+            console.error(`[ERROR] unable to read file. ${err.message}`);
+        }
+    }
+
+    return 0;
+}
+
+function _start() {
+    try {
+        return main();
+    } catch (err) {
+        console.error(err);
+        return 1;
+    }
+}
+
+process.exitCode = _start();
