@@ -5,9 +5,11 @@
  * This script adds opengraph metadata to the provided paths
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { createWriteStream, readFileSync, writeFileSync } from "node:fs";
 import markdownit from 'markdown-it';
 import matter from "@11ty/gray-matter";
+import { createCanvas } from 'canvas';
+import { basename, extname } from "node:path";
 
 function parseArgs(argv) {
     let args = {
@@ -29,6 +31,16 @@ function parseArgs(argv) {
 
 const markdownParser = markdownit({ html: true });
 const markdownItRenderer = markdownParser.renderer
+
+function extractFrontmatterAndContent(fullFileContent) {
+    const collection = matter(fullFileContent);
+    const data = collection.data;
+    const content = collection.content;
+    return {
+        frontMatter: data,
+        textContent: content
+    }
+}
 
 function extractFirstParagraphContent(content) {
     const parsedMarkdownTokens = markdownParser.parse(content);
@@ -55,16 +67,25 @@ function extractHeadingFromFrontmatter(content) {
     return title;
 }
 
-
-
-function generateOpenGraphMetadata(content) {
-    const firstParagraph = extractFirstParagraphContent(content);
-    const heading = extractHeadingFromFrontmatter(content);
-
-    return {
-        title: heading,
-        description: firstParagraph,
+const VOWELS = ["a", "e", "i", "o", "u"];
+function generateOpengraphImage(content, path="assets/og/image/image.png") {
+    const canvas = createCanvas(200, 200);
+    const context = canvas.getContext('2d');
+    const ROWS = 10;
+    const COLS = 10;
+    const CELL_HEIGHT = 200 / COLS;
+    const CELL_WIDTH = 200 / ROWS;
+    for (let i = 0; i < ROWS; i++) {
+        for (let j = 0; j < COLS; j++) {
+            const currentTextIndex = i * ROWS + j;
+            const letter = content[currentTextIndex];
+            context.fillStyle = VOWELS.includes(letter.toLowerCase()) ? "red" : "blue";
+            context.fillRect(i * CELL_WIDTH, j * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+        }
     }
+    const outputWriteStream = createWriteStream(path);
+    const canvasImageStream = canvas.createPNGStream();
+    canvasImageStream.pipe(outputWriteStream);
 }
 
 function attachOpengraphMetadata(content, opengraphData) {
@@ -98,9 +119,14 @@ function main() {
         try {
             const fileContent = readFileSync(path, "utf-8");
             console.log("[INFO] read file");
-            const openGraphMetadata = generateOpenGraphMetadata(fileContent);
+            const { frontMatter, textContent } = extractFrontmatterAndContent(fileContent)
+            const heading = frontMatter.title;
+            const firstParagraph = extractFirstParagraphContent(textContent)
+            const imageFileName = basename(path, extname(path));
+            const imageFilePath = 'assets/og/image/' + imageFileName + '.png';
+            generateOpengraphImage(textContent, imageFilePath);
             console.log("[INFO] generated opengraph metadata");
-            const fileContentWithAddedOpnegraphData = attachOpengraphMetadata(fileContent, openGraphMetadata);
+            const fileContentWithAddedOpnegraphData = attachOpengraphMetadata(fileContent, { title: heading, description: firstParagraph, image: imageFilePath  });
             writeFileSync(path, fileContentWithAddedOpnegraphData)
             console.log("[INFO] wrote file with metadata")
         } catch (err) {
