@@ -71,7 +71,11 @@ export default function (eleventyConfig) {
 	eleventyConfig.addGlobalData("feed", {
 		ttl: THIRTY_DAYS_IN_MINUTES,
 		base: BASE_URL,
-	});
+    });
+
+    eleventyConfig.addGlobalData("website", {
+        url: BASE_URL
+    });
 
 	// setup build folders
 	eleventyConfig.setIncludesDirectory("templates");
