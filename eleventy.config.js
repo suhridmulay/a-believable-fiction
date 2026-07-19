@@ -10,7 +10,7 @@ const CSS_FILES = [
 
 const NOW = new Date();
 const THIRTY_DAYS_IN_MINUTES = 30 * 24 * 60;
-const BASE_URL = "https://feat-og-tags.a-believable-fiction.pages.dev";
+const BASE_URL = "https://abelievablefiction.net/";
 
 const HumanFriendlyDateFormat = Intl.DateTimeFormat("en-IN", {
 		year: "numeric",      // e.g., 2026
