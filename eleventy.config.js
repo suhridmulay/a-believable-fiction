@@ -10,7 +10,7 @@ const CSS_FILES = [
 
 const NOW = new Date();
 const THIRTY_DAYS_IN_MINUTES = 30 * 24 * 60;
-const BASE_URL = "https://abelievablefiction.net";
+const BASE_URL = "https://abelievablefiction.net/";
 
 const HumanFriendlyDateFormat = Intl.DateTimeFormat("en-IN", {
 		year: "numeric",      // e.g., 2026
@@ -59,7 +59,7 @@ export default function (eleventyConfig) {
 	eleventyConfig.addFilter("humanFriendlyDate", (date) => {
 		const d = new Date(date);
 		return HumanFriendlyDateFormat.format(d);
-	});
+    });
 
 	// setup global variables
 	eleventyConfig.addGlobalData("now", {
@@ -71,7 +71,11 @@ export default function (eleventyConfig) {
 	eleventyConfig.addGlobalData("feed", {
 		ttl: THIRTY_DAYS_IN_MINUTES,
 		base: BASE_URL,
-	});
+    });
+
+    eleventyConfig.addGlobalData("website", {
+        url: BASE_URL
+    });
 
 	// setup build folders
 	eleventyConfig.setIncludesDirectory("templates");

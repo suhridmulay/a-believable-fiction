@@ -44,3 +44,6 @@ test-results.xml
 
 # Build output
 build
+
+# I generate opengraph images at runtime, no need to store in repo
+assets/og/image
