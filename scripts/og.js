@@ -69,8 +69,8 @@ function extractHeadingFromFrontmatter(content) {
 
 const VOWELS = ["a", "e", "i", "o", "u"];
 const PALLETE = {
-    CONSONANT: "#E07A5F",
-    VOWEL: "#3D5A80"
+    CONSONANT: "rebeccapurple",
+    VOWEL: "hotpink"
 }
 function generateOpengraphImage(content, path="assets/og/image/image.png") {
     const canvas = createCanvas(200, 200);
