@@ -68,18 +68,22 @@ function extractHeadingFromFrontmatter(content) {
 }
 
 const VOWELS = ["a", "e", "i", "o", "u"];
+const PALLETE = {
+    CONSONANT: "#E07A5F",
+    VOWEL: "#3D5A80"
+}
 function generateOpengraphImage(content, path="assets/og/image/image.png") {
     const canvas = createCanvas(200, 200);
     const context = canvas.getContext('2d');
     const ROWS = 10;
     const COLS = 10;
-    const CELL_HEIGHT = 200 / COLS;
-    const CELL_WIDTH = 200 / ROWS;
+    const CELL_HEIGHT = 200 / ROWS;
+    const CELL_WIDTH = 200 / COLS;
     for (let i = 0; i < ROWS; i++) {
         for (let j = 0; j < COLS; j++) {
-            const currentTextIndex = i * ROWS + j;
+            const currentTextIndex = (i * ROWS + j) % content.length;
             const letter = content[currentTextIndex];
-            context.fillStyle = VOWELS.includes(letter.toLowerCase()) ? "red" : "blue";
+            context.fillStyle = VOWELS.includes(letter.toLowerCase()) ? PALLETE.VOWEL : PALLETE.CONSONANT;
             context.fillRect(i * CELL_WIDTH, j * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
         }
     }
