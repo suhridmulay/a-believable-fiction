@@ -1,11 +1,11 @@
 ---
 title: From the CJP Protest in Bangalore
 description: I went to a protest for the first time in my life and what to share my experience
-published:
-publishedISO:
+published: Mon, 20 Jul 2026 13:30:00 GMT
+publishedISO: 2026-07-20T13:30:00.000Z
 layout: post.njk
 tags: post
-draft: true
+draft: false
 ---
 
 _written on 19th July 2026_
