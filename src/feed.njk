@@ -16,8 +16,8 @@ eleventyExcludeFromCollections: true
         <item>
             <title>{{ weeknote.data.title }}</title>
             <description>{{ weeknote.data.description }}</description>
-            <link>{{ feed.base }}/{{ weeknote.url }}</link>
-            <guid>{{ feed.base }}/{{ weeknote.url }}</guid>
+            <link>{{ feed.base }}{{ weeknote.url }}</link>
+            <guid>{{ feed.base }}{{ weeknote.url }}</guid>
             <pubDate>{{ weeknote.data.publishedISO }}</pubDate>
         </item>
         {% endfor %}

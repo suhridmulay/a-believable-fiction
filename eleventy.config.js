@@ -13,7 +13,7 @@ const THIRTY_DAYS_IN_MINUTES = 30 * 24 * 60;
 
 // This might be Cloudflare tie in, but who cares, we will move when we feel the need to
 const isMainBlog = process.env.CF_PAGES_BRANCH === "main";
-const BASE_URL = isMainBlog ? "https://abelievablefiction.net/" : process.env.CF_PAGES_URL;
+const BASE_URL = isMainBlog ? "https://abelievablefiction.net" : process.env.CF_PAGES_URL;
 
 const HumanFriendlyDateFormat = Intl.DateTimeFormat("en-IN", {
 		year: "numeric",      // e.g., 2026
