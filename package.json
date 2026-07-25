@@ -5,7 +5,7 @@
 	"main": "eleventy.config.js",
 	"scripts": {
 		"dev": "npx @11ty/eleventy --serve",
-		"build": "BASE_URL=$CF_PAGES_URL ./scripts/build.sh",
+		"build": "./scripts/build.sh",
 		"weeknote": "./scripts/weeknotes.sh",
 		"post": "./scripts/posts.sh"
 	},
