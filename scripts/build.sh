@@ -6,4 +6,4 @@ for file in ./src/posts/weeknotes/*.md; do
 done
 
 # Build the actual app
-npx @11ty/eleventy
+BASE_URL=$BASE_URL npx @11ty/eleventy
