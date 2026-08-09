@@ -209,7 +209,7 @@ a {
 	width: 100%;
 	position: sticky;
 	top: 0;
-	padding: 8px;
+	padding: 16px 8px;
 	color: var(--background-color);
 	background-color: var(--content-text-color);
 
