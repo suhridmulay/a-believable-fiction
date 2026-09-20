@@ -58,7 +58,7 @@
         transition: color 150ms;
 	}
 
-	&:hover {
+	li:hover {
 	    .post-description {
 			color: var(--content-text-color);
 		}
