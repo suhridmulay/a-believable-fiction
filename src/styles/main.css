@@ -33,6 +33,10 @@
 }
 
 .list-of-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
 	a {
 	    text-decoration: none;
 		color: inherit;
