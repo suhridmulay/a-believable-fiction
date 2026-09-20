@@ -1,0 +1,35 @@
+---
+layout: base.njk
+title: Drafts
+---
+
+<div id="root">
+    <main class="article-list">
+    <article class="article-excerpt">
+        <header class="heading">
+			<h2>Drafts</h2>
+		</header>
+
+        <p>
+        This page is home to all the things I am currently working on, sometimes work pauses for a while, and other times I give up and then forget ideas.
+        This page should ideally help me remain on track, and check things as they come by.
+        For the future, I can also set up some kind of automation to automatically add posts to draft whenever an idea pops up in my head
+        </p>
+
+        <ul class="list-of-links">
+            {% for post in collections.post %} {% if post | isDraft %}
+                <li>
+                    <a href="{{ post.url }}">
+                        <p class="post-title">
+                            {{ post.data.title }}
+                        </p>
+                        <p class="post-description"> {{ post.data.description }} </p>
+                    </a>
+                </li>
+                {% endif %} {% endfor %}
+        </ul>
+    </article>
+    </main>
+
+    {% include "./templates/components/footer.njk" %}
+</div>

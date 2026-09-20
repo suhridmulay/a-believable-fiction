@@ -12,8 +12,12 @@
 	gap: 4em;
 
 	.article-excerpt {
+	    display: flex;
+		flex-direction: column;
+		gap: 1em;
+
 		.heading {
-			font-family: "Fredericka the Great", serif;
+			font-family: var(--font-family-en-heading), serif;
 			font-weight: 400;
 			line-height: 2;
 
@@ -30,10 +34,29 @@
 
 .list-of-links {
 	a {
+	    text-decoration: none;
 		color: inherit;
 
 		&:hover {
 			color: #003153;
+		}
+	}
+
+	.post-title {
+        text-decoration: none;
+	}
+
+	.post-description {
+        color: var(--subtitle-text-color);
+        font-family: var(--font-family-en-body);
+		text-decoration: none !important;
+        font-size: 12px;
+        transition: color 150ms;
+	}
+
+	&:hover {
+	    .post-description {
+			color: var(--content-text-color);
 		}
 	}
 }

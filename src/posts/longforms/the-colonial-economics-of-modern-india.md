@@ -1,6 +1,6 @@
 ---
 title: The Colonial Economics of Modern India
-description: Explores the colonial nature of modern economics in India.
+description: Explores whether modern indian state apparatus is any different from the extractive colonial regime of British India by analysing gold policy, agriculture policy, and capital expenditure.
 published: Sun, 24 May 2026 11:30:00 +0530
 publishedISO: 24-05-2026T11:30:00+05:30
 layout: post.njk
