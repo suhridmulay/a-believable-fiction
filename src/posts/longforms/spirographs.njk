@@ -1,0 +1,130 @@
+---
+title: Spirographs
+description: Experimenting with Spirographs (and njk blog) for fun and just fun, no profit
+published:
+publishedISO:
+layout: post.njk
+tags: post
+draft: true
+---
+
+<style>
+    canvas {
+        width: 100%;
+        height: 400px;
+    }
+
+    script {
+        display: block;
+        border: 1px solid red;
+        font-family: monospace;
+        white-space: pre-wrap;
+    }
+</style>
+
+<p>
+    If you are a 2000s or maybe 1990s kid as well you might remember some cool toys at local fairs which allow you to draw some really cool geometric patterns. The whole setup consisted of two plastic pieces, one ring like and one disc with a set of spiral holes. Depending on which part of the spiral you put your pencil to, you would get a different pattern.
+</p>
+
+<p>
+    Yep, that thing. Now, even if you don't recognise it, no problem, we can link to the Wikipedia page for <a href="https://en.wikipedia.org/wiki/Spirograph">Spirographs</a> and perhaps that can help jog the memory. However onwards with the exploration here. I want to - by the medium of this post - try and construct a simulation using the HTML5 Canvas API of spirograph patterns and see how far I can take it.
+</p>
+
+<div>
+    <p>
+        Our first step will be to get our two circles onto a canvas. Some assumptions we are making here will be:
+    </p>
+
+    <ul>
+        <li>The outer circle will start in the center</li>
+        <li>The inner circle will be touching the rim of the outer circle</li>
+    </ul>
+
+    <p></p>
+
+    <input id="spiro-1-outer-radius" type="range" min="0" max="200" />
+    <input id="spiro-1-inner-radius" type="range" min="0" max="100" />
+
+    <script>
+        function getSpiro1InnerRadius() {
+            return document.querySelector("#spiro-1-inner-radius").value;
+        }
+
+        function getSpiro1OuterRadius() {
+            return document.querySelector("#spiro-1-outer-radius").value;
+        }
+    </script>
+
+    <canvas id="spiro-1"></canvas>
+
+    <script>
+        function initCanvas(selector) {
+            const canvas = document.querySelector(selector);
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight; // should always be 400px
+            canvas.width = width;
+            canvas.height = height;
+            return canvas;
+        }
+
+        const spiro1 = initCanvas("#spiro-1");
+    </script>
+
+    <p>Now let's define a quick helper to help us draw these circles </p>
+    <script>
+        function drawCircle(canvas, centerX, centerY, radius) {
+            const context = canvas.getContext("2d");
+            context.beginPath();
+            context.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            context.strokeStyle = "red";
+            context.strokeWidth = 2;
+            context.stroke();
+        }
+
+        const outerRadius = getSpiro1OuterRadius();
+        const innerRadius = getSpiro1InnerRadius();
+        drawCircle(spiro1, spiro1.width / 2, spiro1.height / 2, outerRadius);
+    </script>
+
+    <p>Putting all of this into a reactive canvas</p>
+
+    <input id="spiro-2-outer-radius" type="range" min="0" max="200" />
+    <input id="spiro-2-inner-radius" type="range" min="0" max="100" />
+
+    <canvas id="spiro-2">
+
+    </canvas>
+
+    <script>
+        const spiro2 = initCanvas('#spiro-2');
+        const ctx = spiro2.getContext("2d");
+        const spiro2InnerRadius = document.querySelector("#spiro-2-inner-radius");
+        const spiro2OuterRadius = document.querySelector("#spiro-2-outer-radius");
+
+        function drawCircles() {
+            ctx.clearRect(0, 0, spiro2.width, spiro2.height);
+
+            const outerRadius = Number((() => spiro2OuterRadius.value)());
+            drawCircle(spiro2, spiro2.width / 2, spiro2.height / 2, outerRadius);
+
+            const innerCircleRadius = Number((() => spiro2InnerRadius.value)());
+            const innerCircleCenterHeight =  (spiro2.height / 2) - outerRadius + innerCircleRadius;
+            drawCircle(spiro2, spiro2.width / 2, innerCircleCenterHeight, innerCircleRadius);
+        }
+
+        spiro2InnerRadius.addEventListener("input", drawCircles);
+        spiro2OuterRadius.addEventListener("input", drawCircles);
+
+        drawCircles();
+    </script>
+
+    <p>
+        Next step is to try and locate the equation of a point on the spirograph, let's consider the outer radius to be <math> R </math> and the inner radius to be <math> r </math>.
+        For the purposes of painting, let's consider only the bottom most point of the inner circle, and try to understand how it would move, when the inner circle rolls around the outer circle.
+        We will consider only one parameter for our equation, which is theta <math>θ</math> which will describe the angle from the original vertical axis, the inner circle's center has rotated to.
+    </p>
+
+    <p>
+        When the inner circle has moved such that it subtends an angle theta from the vertical axis,
+
+</div>
