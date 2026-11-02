@@ -1,11 +1,11 @@
 ---
 title: Cyberpunk 1777
 description: Thoughts on playing Cyberpunk
-published:
-publishedISO:
+published: Mon, 02 Nov 2026 13:30:00 GMT
+publishedISO: 2026-11-02T13:30:00.000Z
 layout: post.njk
 tags: post
-draft: true
+draft: false
 ---
 
 At a slight distance from the Neon, and the vibrant glowing palette of dystopia that I saw in my playthrough of Cyberpunk 2077 I was thinking of what are the core themes of Cyberpunk. The neon is beautiful, the city is by all accounts lively, the society a dystopia. Technology is flashy, and as the character creation screen reminded me, in Night City looks are everything. But a bigger question is, what lies under these looks.
