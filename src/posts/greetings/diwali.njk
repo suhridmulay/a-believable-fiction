@@ -173,6 +173,30 @@ permalink: /greetings/diwali/
             background: #ff8833;
         }
         
+        .loop-button {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ff6600;
+            border-radius: 4px;
+            color: #ff6600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .loop-button:hover {
+            background: #ff6600;
+            color: #fff;
+        }
+        
+        .loop-button.active {
+            background: #ff6600;
+            color: #fff;
+            border-color: #ff8833;
+        }
+        
         .preset-color-preview {
             width: 16px;
             height: 16px;
@@ -275,6 +299,7 @@ permalink: /greetings/diwali/
             <input type="color" id="color-picker" value="#ff6600">
         </div>
         <button class="save-preset-button" id="save-preset">Save Preset</button>
+        <button class="loop-button" id="loop-presets">Loop Presets</button>
         <div class="presets-section" id="presets-container">
             <!-- Preset buttons will be added here dynamically -->
         </div>
@@ -306,6 +331,7 @@ permalink: /greetings/diwali/
         
         // Preset controls
         const savePresetButton = document.getElementById('save-preset');
+        const loopButton = document.getElementById('loop-presets');
         const presetsContainer = document.getElementById('presets-container');
 
         // Current settings
@@ -329,6 +355,9 @@ permalink: /greetings/diwali/
         let interpolationProgress = 0;
         let interpolationSpeed = 0.02;
         let targetConfig = null;
+        let isLooping = false;
+        let loopInterval = null;
+        let loopDelay = 3000; // 3 seconds between presets
         
         // Get current config as an object
         function getCurrentConfig() {
@@ -557,6 +586,64 @@ permalink: /greetings/diwali/
         
         // Save preset button
         savePresetButton.addEventListener('click', savePreset);
+        
+        // Loop button
+        loopButton.addEventListener('click', toggleLoop);
+        
+        // Loop through presets
+        function toggleLoop() {
+            isLooping = !isLooping;
+            loopButton.classList.toggle('active', isLooping);
+            
+            if (isLooping) {
+                startLoop();
+            } else {
+                stopLoop();
+            }
+        }
+        
+        function startLoop() {
+            if (presets.length === 0) return;
+            
+            // Start from current preset or first one
+            if (currentPresetIndex === null) {
+                currentPresetIndex = 0;
+            }
+            
+            // Highlight current preset
+            document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+            if (document.querySelectorAll('.preset-button')[currentPresetIndex]) {
+                document.querySelectorAll('.preset-button')[currentPresetIndex].classList.add('active');
+            }
+            
+            // Apply current preset immediately
+            targetConfig = presets[currentPresetIndex];
+            isInterpolating = true;
+            interpolationProgress = 0;
+            
+            // Set up interval for next preset
+            loopInterval = setInterval(() => {
+                currentPresetIndex = (currentPresetIndex + 1) % presets.length;
+                
+                // Update active state
+                document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+                if (document.querySelectorAll('.preset-button')[currentPresetIndex]) {
+                    document.querySelectorAll('.preset-button')[currentPresetIndex].classList.add('active');
+                }
+                
+                // Start interpolation to next preset
+                targetConfig = presets[currentPresetIndex];
+                isInterpolating = true;
+                interpolationProgress = 0;
+            }, loopDelay);
+        }
+        
+        function stopLoop() {
+            if (loopInterval) {
+                clearInterval(loopInterval);
+                loopInterval = null;
+            }
+        }
 
         // Set canvas to full window size
         function resizeCanvas() {
