@@ -1,0 +1,568 @@
+---
+title: Diwali Greetings
+layout: base.njk
+permalink: /greetings/diwali/
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Diwali! - Firecracker Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0a0a1a;
+            height: 100vh;
+            width: 100vw;
+            cursor: crosshair;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            text-align: center;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            color: #ccc;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-group input[type="range"] {
+            padding: 8px 12px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #1a1a2a;
+            color: #fff;
+            font-size: 14px;
+            width: 120px;
+        }
+        
+        .control-group input[type="color"] {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .control-group input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        
+        .control-group input[type="color"]::-webkit-color-swatch {
+            border: 2px solid #444;
+            border-radius: 4px;
+        }
+        
+        .element-slider {
+            width: 150px;
+        }
+        
+        .element-value {
+            color: #aaa;
+            font-size: 11px;
+            text-align: right;
+            min-width: 40px;
+        }
+        
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            margin-left: 10px;
+        }
+        
+        .elements-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        #color-picker {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        #color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        #color-picker::-webkit-color-swatch {
+            border: 2px solid #444;
+            border-radius: 4px;
+        }
+
+        #delay-display {
+            color: #aaa;
+            font-size: 12px;
+            min-width: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions">Click anywhere to launch a firecracker!</div>
+    <canvas id="canvas"></canvas>
+
+    <div id="controls">
+        <div class="control-group">
+            <label for="delay">Delay (seconds)</label>
+            <input type="range" id="delay" min="0.1" max="5" step="0.1" value="1" class="element-slider">
+            <span id="delay-display" class="element-value">1.0s</span>
+        </div>
+        
+        <div class="elements-section">
+            <div class="control-group">
+                <label for="copper">Copper (Green)</label>
+                <input type="range" id="copper" min="0" max="100" value="30" class="element-slider">
+                <span id="copper-value" class="element-value">30%</span>
+            </div>
+            <div class="control-group">
+                <label for="strontium">Strontium (Red)</label>
+                <input type="range" id="strontium" min="0" max="100" value="70" class="element-slider">
+                <span id="strontium-value" class="element-value">70%</span>
+            </div>
+            <div class="control-group">
+                <label for="copper-chloride">CuCl₂ (Blue)</label>
+                <input type="range" id="copper-chloride" min="0" max="100" value="0" class="element-slider">
+                <span id="copper-chloride-value" class="element-value">0%</span>
+            </div>
+            <div class="color-preview" id="mixed-color-preview"></div>
+        </div>
+        
+        <div class="control-group">
+            <label for="color-picker">Result Color</label>
+            <input type="color" id="color-picker" value="#ff6600">
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const delaySlider = document.getElementById('delay');
+        const delayDisplay = document.getElementById('delay-display');
+        const colorPicker = document.getElementById('color-picker');
+        
+        // Element sliders
+        const copperSlider = document.getElementById('copper');
+        const strontiumSlider = document.getElementById('strontium');
+        const copperChlorideSlider = document.getElementById('copper-chloride');
+        const copperValue = document.getElementById('copper-value');
+        const strontiumValue = document.getElementById('strontium-value');
+        const copperChlorideValue = document.getElementById('copper-chloride-value');
+        const mixedColorPreview = document.getElementById('mixed-color-preview');
+
+        // Current settings
+        let currentDelay = parseFloat(delaySlider.value);
+        let currentColor = colorPicker.value;
+        
+        // Element color definitions (real flame colors)
+        const elementColors = {
+            copper: { r: 0, g: 255, b: 100 },      // Green
+            strontium: { r: 255, g: 50, b: 0 },    // Red
+            copperChloride: { r: 0, g: 150, b: 255 } // Blue
+        };
+        
+        // Update element values and mixed color
+        function updateMixedColor() {
+            const copper = parseInt(copperSlider.value);
+            const strontium = parseInt(strontiumSlider.value);
+            const copperChloride = parseInt(copperChlorideSlider.value);
+            
+            // Update display values
+            copperValue.textContent = copper + '%';
+            strontiumValue.textContent = strontium + '%';
+            copperChlorideValue.textContent = copperChloride + '%';
+            
+            // Calculate mixed color based on element ratios
+            const total = copper + strontium + copperChloride;
+            if (total === 0) {
+                // Default to orange if all are zero
+                currentColor = '#ff6600';
+                mixedColorPreview.style.backgroundColor = currentColor;
+                colorPicker.value = currentColor;
+                return;
+            }
+            
+            // Weighted average of RGB values
+            const r = Math.round(
+                (copper * elementColors.copper.r + 
+                 strontium * elementColors.strontium.r + 
+                 copperChloride * elementColors.copperChloride.r) / total
+            );
+            const g = Math.round(
+                (copper * elementColors.copper.g + 
+                 strontium * elementColors.strontium.g + 
+                 copperChloride * elementColors.copperChloride.g) / total
+            );
+            const b = Math.round(
+                (copper * elementColors.copper.b + 
+                 strontium * elementColors.strontium.b + 
+                 copperChloride * elementColors.copperChloride.b) / total
+            );
+            
+            // Convert to hex
+            currentColor = rgbToHex(r, g, b);
+            mixedColorPreview.style.backgroundColor = currentColor;
+            colorPicker.value = currentColor;
+        }
+        
+        // Helper function to convert RGB to hex
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        // Update delay display
+        delaySlider.addEventListener('input', () => {
+            currentDelay = parseFloat(delaySlider.value);
+            delayDisplay.textContent = currentDelay.toFixed(1) + 's';
+        });
+
+        // Update color from picker (for manual override)
+        colorPicker.addEventListener('input', () => {
+            currentColor = colorPicker.value;
+            mixedColorPreview.style.backgroundColor = currentColor;
+        });
+        
+        // Element slider event listeners
+        copperSlider.addEventListener('input', updateMixedColor);
+        strontiumSlider.addEventListener('input', updateMixedColor);
+        copperChlorideSlider.addEventListener('input', updateMixedColor);
+
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 60; // Account for controls
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Firecracker class
+        class Firecracker {
+            constructor(targetX, targetY) {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.speed = 8;
+                this.angle = Math.atan2(targetY - this.y, targetX - this.x);
+                this.velocityX = Math.cos(this.angle) * this.speed;
+                this.velocityY = Math.sin(this.angle) * this.speed;
+                this.size = 1;
+                this.color = currentColor;
+                this.trail = [];
+                this.maxTrailLength = 15;
+                this.exploded = false;
+                this.particles = [];
+                this.explosionRadius = 0;
+                this.maxExplosionRadius = 5;
+                this.explosionSpeed = 0.5;
+                this.launchTime = Date.now();
+            }
+
+            update() {
+                if (this.exploded) {
+                    this.explosionRadius += this.explosionSpeed;
+
+                    // Update particles
+                    for (let i = this.particles.length - 1; i >= 0; i--) {
+                        const p = this.particles[i];
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.05; // reduced gravity
+                        p.life--;
+
+                        if (p.life <= 0) {
+                            this.particles.splice(i, 1);
+                        }
+                    }
+
+                    return this.explosionRadius >= this.maxExplosionRadius && this.particles.length === 0;
+                }
+
+                // Move towards target
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+
+                // Add to trail
+                this.trail.push({ x: this.x, y: this.y, size: this.size });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+
+                // Check if reached target (with some tolerance)
+                const distance = Math.sqrt(
+                    Math.pow(this.targetX - this.x, 2) +
+                    Math.pow(this.targetY - this.y, 2)
+                );
+
+                if (distance < 5) {
+                    this.explode();
+                }
+
+                return false;
+            }
+
+            explode() {
+                this.exploded = true;
+
+                // Create explosion particles
+                const particleCount = 80;
+                for (let i = 0; i < particleCount; i++) {
+                    // Bias angles to spread more evenly in all directions
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = Math.random() * 3 + 1.5;
+                    const vx = Math.cos(angle) * velocity;
+                    const vy = Math.sin(angle) * velocity;
+                    const size = Math.random() * 0.5 + 0.25;
+                    const life = Math.random() * 60 + 30;
+
+                    // Use the firecracker color with some variation
+                    const hue = this.hexToHsl(this.color).h;
+                    const saturation = this.hexToHsl(this.color).s;
+                    const particleHue = (hue + Math.random() * 30 - 15) % 360;
+                    const particleColor = `hsl(${particleHue}, ${saturation}%, ${Math.random() * 40 + 60}%)`;
+
+                    this.particles.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: vx,
+                        vy: vy,
+                        size: size,
+                        color: particleColor,
+                        life: life
+                    });
+                }
+            }
+
+            hexToHsl(hex) {
+                // Convert hex to RGB first
+                let r = 0, g = 0, b = 0;
+                if (hex.length == 4) {
+                    r = parseInt(hex[1] + hex[1], 16);
+                    g = parseInt(hex[2] + hex[2], 16);
+                    b = parseInt(hex[3] + hex[3], 16);
+                } else if (hex.length == 7) {
+                    r = parseInt(hex[1] + hex[2], 16);
+                    g = parseInt(hex[3] + hex[4], 16);
+                    b = parseInt(hex[5] + hex[6], 16);
+                }
+
+                // Then to HSL
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h = 0, s, l = (max + min) / 2;
+
+                if (max == min) {
+                    h = s = 0; // achromatic
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    l: Math.round(l * 100)
+                };
+            }
+
+            draw() {
+                if (this.exploded) {
+                    // Draw explosion particles
+                    for (const p of this.particles) {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+                    }
+
+                    // Draw explosion glow using the firecracker color
+                    const rgb = this.hexToRgb(this.color);
+                    const gradient = ctx.createRadialGradient(
+                        this.x, this.y, 0,
+                        this.x, this.y, this.explosionRadius
+                    );
+                    gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`);
+                    gradient.addColorStop(0.7, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.05)`);
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.explosionRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    return;
+                }
+
+                // Draw trail
+                for (let i = 0; i < this.trail.length; i++) {
+                    const point = this.trail[i];
+                    const alpha = i / this.trail.length;
+                    const rgb = this.hexToRgb(this.color);
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, point.size * (0.5 + alpha * 0.5), 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.8})`;
+                    ctx.fill();
+                }
+
+                // Draw firecracker
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                // Draw fuse glow
+                const rgb = this.hexToRgb(this.color);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
+                ctx.fill();
+            }
+
+            hexToRgb(hex) {
+                let r = 0, g = 0, b = 0;
+                if (hex.length == 4) {
+                    r = parseInt(hex[1] + hex[1], 16);
+                    g = parseInt(hex[2] + hex[2], 16);
+                    b = parseInt(hex[3] + hex[3], 16);
+                } else if (hex.length == 7) {
+                    r = parseInt(hex[1] + hex[2], 16);
+                    g = parseInt(hex[3] + hex[4], 16);
+                    b = parseInt(hex[5] + hex[6], 16);
+                }
+                return { r, g, b };
+            }
+        }
+
+        const firecrackers = [];
+        let lastFirecrackerTime = 0;
+
+        function animate() {
+            // Clear canvas with semi-transparent background for motion blur effect
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw firecrackers
+            for (let i = firecrackers.length - 1; i >= 0; i--) {
+                const firecracker = firecrackers[i];
+                const done = firecracker.update();
+                firecracker.draw();
+
+                if (done) {
+                    firecrackers.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Handle clicks
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            firecrackers.push(new Firecracker(x, y));
+        });
+
+        // Allow touch events for mobile
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.changedTouches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            firecrackers.push(new Firecracker(x, y));
+        });
+
+        // Auto-launch firecrackers with delay
+        function launchRandomFirecracker() {
+            const now = Date.now();
+            if (now - lastFirecrackerTime > currentDelay * 1000) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height * 0.5 + canvas.height * 0.25;
+                firecrackers.push(new Firecracker(x, y));
+                lastFirecrackerTime = now;
+            }
+            requestAnimationFrame(launchRandomFirecracker);
+        }
+
+        // Start animations
+        animate();
+        launchRandomFirecracker();
+
+        // Initialize delay display
+        delayDisplay.textContent = currentDelay.toFixed(1) + 's';
+    </script>
+</body>
+</html>
