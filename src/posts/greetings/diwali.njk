@@ -78,7 +78,7 @@ permalink: /greetings/diwali/
             font-size: 14px;
             width: 120px;
         }
-        
+
         .control-group input[type="color"] {
             width: 40px;
             height: 40px;
@@ -87,27 +87,27 @@ permalink: /greetings/diwali/
             cursor: pointer;
             border-radius: 4px;
         }
-        
+
         .control-group input[type="color"]::-webkit-color-swatch-wrapper {
             padding: 0;
         }
-        
+
         .control-group input[type="color"]::-webkit-color-swatch {
             border: 2px solid #444;
             border-radius: 4px;
         }
-        
+
         .element-slider {
             width: 150px;
         }
-        
+
         .element-value {
             color: #aaa;
             font-size: 11px;
             text-align: right;
             min-width: 40px;
         }
-        
+
         .color-preview {
             width: 30px;
             height: 30px;
@@ -115,8 +115,74 @@ permalink: /greetings/diwali/
             border: 2px solid #555;
             margin-left: 10px;
         }
-        
+
         .elements-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .presets-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-left: 15px;
+        }
+        
+        .preset-button {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .preset-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .preset-button.active {
+            background: #ff6600;
+            border-color: #ff8833;
+        }
+        
+        .save-preset-button {
+            padding: 8px 12px;
+            background: #ff6600;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .save-preset-button:hover {
+            background: #ff8833;
+        }
+        
+        .preset-color-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .path-section {
             display: flex;
             gap: 15px;
             align-items: center;
@@ -166,7 +232,7 @@ permalink: /greetings/diwali/
             <input type="range" id="delay" min="0.1" max="5" step="0.1" value="1" class="element-slider">
             <span id="delay-display" class="element-value">1.0s</span>
         </div>
-        
+
         <div class="elements-section">
             <div class="control-group">
                 <label for="copper">Copper (Green)</label>
@@ -185,10 +251,32 @@ permalink: /greetings/diwali/
             </div>
             <div class="color-preview" id="mixed-color-preview"></div>
         </div>
-        
+
+        <div class="path-section">
+            <div class="control-group">
+                <label for="path-blend">Path Blend</label>
+                <input type="range" id="path-blend" min="0" max="100" value="0" class="element-slider">
+                <span id="path-blend-value" class="element-value">0%</span>
+            </div>
+            <div class="control-group">
+                <label for="speed">Speed</label>
+                <input type="range" id="speed" min="2" max="20" value="8" class="element-slider">
+                <span id="speed-value" class="element-value">8</span>
+            </div>
+            <div class="control-group">
+                <label for="angular-velocity">Angular Velocity</label>
+                <input type="range" id="angular-velocity" min="0.1" max="5" step="0.1" value="2" class="element-slider">
+                <span id="angular-velocity-value" class="element-value">2.0</span>
+            </div>
+        </div>
+
         <div class="control-group">
             <label for="color-picker">Result Color</label>
             <input type="color" id="color-picker" value="#ff6600">
+        </div>
+        <button class="save-preset-button" id="save-preset">Save Preset</button>
+        <div class="presets-section" id="presets-container">
+            <!-- Preset buttons will be added here dynamically -->
         </div>
     </div>
 
@@ -207,11 +295,26 @@ permalink: /greetings/diwali/
         const strontiumValue = document.getElementById('strontium-value');
         const copperChlorideValue = document.getElementById('copper-chloride-value');
         const mixedColorPreview = document.getElementById('mixed-color-preview');
+        
+        // Path controls
+        const pathBlendSlider = document.getElementById('path-blend');
+        const pathBlendValue = document.getElementById('path-blend-value');
+        const speedSlider = document.getElementById('speed');
+        const angularVelocitySlider = document.getElementById('angular-velocity');
+        const speedValue = document.getElementById('speed-value');
+        const angularVelocityValue = document.getElementById('angular-velocity-value');
+        
+        // Preset controls
+        const savePresetButton = document.getElementById('save-preset');
+        const presetsContainer = document.getElementById('presets-container');
 
         // Current settings
         let currentDelay = parseFloat(delaySlider.value);
         let currentColor = colorPicker.value;
-        
+        let currentPathBlend = parseInt(pathBlendSlider.value) / 100; // 0 to 1
+        let currentSpeed = parseInt(speedSlider.value);
+        let currentAngularVelocity = parseFloat(angularVelocitySlider.value);
+
         // Element color definitions (real flame colors)
         const elementColors = {
             copper: { r: 0, g: 255, b: 100 },      // Green
@@ -219,17 +322,156 @@ permalink: /greetings/diwali/
             copperChloride: { r: 0, g: 150, b: 255 } // Blue
         };
         
+        // Preset system
+        let presets = [];
+        let currentPresetIndex = null;
+        let isInterpolating = false;
+        let interpolationProgress = 0;
+        let interpolationSpeed = 0.02;
+        let targetConfig = null;
+        
+        // Get current config as an object
+        function getCurrentConfig() {
+            return {
+                copper: parseInt(copperSlider.value),
+                strontium: parseInt(strontiumSlider.value),
+                copperChloride: parseInt(copperChlorideSlider.value),
+                pathBlend: parseInt(pathBlendSlider.value),
+                speed: parseInt(speedSlider.value),
+                angularVelocity: parseFloat(angularVelocitySlider.value),
+                color: currentColor
+            };
+        }
+        
+        // Apply config to UI
+        function applyConfig(config) {
+            copperSlider.value = config.copper;
+            strontiumSlider.value = config.strontium;
+            copperChlorideSlider.value = config.copperChloride;
+            pathBlendSlider.value = config.pathBlend;
+            speedSlider.value = config.speed;
+            angularVelocitySlider.value = config.angularVelocity;
+            
+            // Update display values
+            copperValue.textContent = config.copper + '%';
+            strontiumValue.textContent = config.strontium + '%';
+            copperChlorideValue.textContent = config.copperChloride + '%';
+            pathBlendValue.textContent = config.pathBlend + '%';
+            speedValue.textContent = config.speed;
+            angularVelocityValue.textContent = config.angularVelocity.toFixed(1);
+            
+            // Update mixed color
+            updateMixedColor();
+            colorPicker.value = config.color;
+            mixedColorPreview.style.backgroundColor = config.color;
+            currentColor = config.color;
+            
+            // Update current settings
+            currentPathBlend = config.pathBlend / 100;
+            currentSpeed = config.speed;
+            currentAngularVelocity = config.angularVelocity;
+        }
+        
+        // Smoothly interpolate to target config
+        function updateInterpolation() {
+            if (!isInterpolating || !targetConfig) return;
+            
+            interpolationProgress += interpolationSpeed;
+            
+            if (interpolationProgress >= 1) {
+                interpolationProgress = 1;
+                isInterpolating = false;
+                applyConfig(targetConfig);
+                targetConfig = null;
+                return;
+            }
+            
+            // Interpolate each value
+            const startConfig = getCurrentConfig();
+            const config = {
+                copper: Math.round(startConfig.copper + (targetConfig.copper - startConfig.copper) * interpolationProgress),
+                strontium: Math.round(startConfig.strontium + (targetConfig.strontium - startConfig.strontium) * interpolationProgress),
+                copperChloride: Math.round(startConfig.copperChloride + (targetConfig.copperChloride - startConfig.copperChloride) * interpolationProgress),
+                pathBlend: Math.round(startConfig.pathBlend + (targetConfig.pathBlend - startConfig.pathBlend) * interpolationProgress),
+                speed: Math.round(startConfig.speed + (targetConfig.speed - startConfig.speed) * interpolationProgress),
+                angularVelocity: startConfig.angularVelocity + (targetConfig.angularVelocity - startConfig.angularVelocity) * interpolationProgress,
+                color: blendColors(startConfig.color, targetConfig.color, interpolationProgress)
+            };
+            
+            applyConfig(config);
+        }
+        
+        // Blend two hex colors
+        function blendColors(color1, color2, ratio) {
+            const r1 = parseInt(color1.slice(1, 3), 16);
+            const g1 = parseInt(color1.slice(3, 5), 16);
+            const b1 = parseInt(color1.slice(5, 7), 16);
+            
+            const r2 = parseInt(color2.slice(1, 3), 16);
+            const g2 = parseInt(color2.slice(3, 5), 16);
+            const b2 = parseInt(color2.slice(5, 7), 16);
+            
+            const r = Math.round(r1 + (r2 - r1) * ratio);
+            const g = Math.round(g1 + (g2 - g1) * ratio);
+            const b = Math.round(b1 + (b2 - b1) * ratio);
+            
+            return rgbToHex(r, g, b);
+        }
+        
+        // Save current preset
+        function savePreset() {
+            const config = getCurrentConfig();
+            presets.push(config);
+            renderPresets();
+        }
+        
+        // Render preset buttons
+        function renderPresets() {
+            presetsContainer.innerHTML = '';
+            
+            presets.forEach((preset, index) => {
+                const button = document.createElement('button');
+                button.className = 'preset-button';
+                if (currentPresetIndex === index) {
+                    button.classList.add('active');
+                }
+                
+                const colorPreview = document.createElement('span');
+                colorPreview.className = 'preset-color-preview';
+                colorPreview.style.backgroundColor = preset.color;
+                
+                button.appendChild(colorPreview);
+                button.appendChild(document.createTextNode(`Preset ${index + 1}`));
+                
+                button.addEventListener('click', () => {
+                    // Start interpolation
+                    targetConfig = preset;
+                    isInterpolating = true;
+                    interpolationProgress = 0;
+                    currentPresetIndex = index;
+                    
+                    // Update active state
+                    document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                });
+                
+                presetsContainer.appendChild(button);
+            });
+        }
+        
+
+
         // Update element values and mixed color
         function updateMixedColor() {
             const copper = parseInt(copperSlider.value);
             const strontium = parseInt(strontiumSlider.value);
             const copperChloride = parseInt(copperChlorideSlider.value);
-            
+
             // Update display values
             copperValue.textContent = copper + '%';
             strontiumValue.textContent = strontium + '%';
             copperChlorideValue.textContent = copperChloride + '%';
-            
+
             // Calculate mixed color based on element ratios
             const total = copper + strontium + copperChloride;
             if (total === 0) {
@@ -239,30 +481,30 @@ permalink: /greetings/diwali/
                 colorPicker.value = currentColor;
                 return;
             }
-            
+
             // Weighted average of RGB values
             const r = Math.round(
-                (copper * elementColors.copper.r + 
-                 strontium * elementColors.strontium.r + 
+                (copper * elementColors.copper.r +
+                 strontium * elementColors.strontium.r +
                  copperChloride * elementColors.copperChloride.r) / total
             );
             const g = Math.round(
-                (copper * elementColors.copper.g + 
-                 strontium * elementColors.strontium.g + 
+                (copper * elementColors.copper.g +
+                 strontium * elementColors.strontium.g +
                  copperChloride * elementColors.copperChloride.g) / total
             );
             const b = Math.round(
-                (copper * elementColors.copper.b + 
-                 strontium * elementColors.strontium.b + 
+                (copper * elementColors.copper.b +
+                 strontium * elementColors.strontium.b +
                  copperChloride * elementColors.copperChloride.b) / total
             );
-            
+
             // Convert to hex
             currentColor = rgbToHex(r, g, b);
             mixedColorPreview.style.backgroundColor = currentColor;
             colorPicker.value = currentColor;
         }
-        
+
         // Helper function to convert RGB to hex
         function rgbToHex(r, g, b) {
             return '#' + [r, g, b].map(x => {
@@ -282,11 +524,39 @@ permalink: /greetings/diwali/
             currentColor = colorPicker.value;
             mixedColorPreview.style.backgroundColor = currentColor;
         });
-        
+
         // Element slider event listeners
         copperSlider.addEventListener('input', updateMixedColor);
         strontiumSlider.addEventListener('input', updateMixedColor);
         copperChlorideSlider.addEventListener('input', updateMixedColor);
+
+        // Path control event listeners
+        pathBlendSlider.addEventListener('input', () => {
+            currentPathBlend = parseInt(pathBlendSlider.value) / 100;
+            pathBlendValue.textContent = pathBlendSlider.value + '%';
+        });
+
+        speedSlider.addEventListener('input', () => {
+            currentSpeed = parseInt(speedSlider.value);
+            speedValue.textContent = currentSpeed;
+        });
+
+        angularVelocitySlider.addEventListener('input', () => {
+            currentAngularVelocity = parseFloat(angularVelocitySlider.value);
+            angularVelocityValue.textContent = currentAngularVelocity.toFixed(1);
+        });
+
+        // Initialize display values
+        pathBlendValue.textContent = pathBlendSlider.value + '%';
+        speedValue.textContent = currentSpeed;
+        angularVelocityValue.textContent = currentAngularVelocity.toFixed(1);
+        
+        // Initialize presets with current config as first preset
+        presets.push(getCurrentConfig());
+        renderPresets();
+        
+        // Save preset button
+        savePresetButton.addEventListener('click', savePreset);
 
         // Set canvas to full window size
         function resizeCanvas() {
@@ -299,24 +569,33 @@ permalink: /greetings/diwali/
         // Firecracker class
         class Firecracker {
             constructor(targetX, targetY) {
-                this.x = Math.random() * canvas.width;
-                this.y = canvas.height + 20;
+                this.startX = Math.random() * canvas.width;
+                this.startY = canvas.height + 20;
+                this.x = this.startX;
+                this.y = this.startY;
                 this.targetX = targetX;
                 this.targetY = targetY;
-                this.speed = 8;
-                this.angle = Math.atan2(targetY - this.y, targetX - this.x);
-                this.velocityX = Math.cos(this.angle) * this.speed;
-                this.velocityY = Math.sin(this.angle) * this.speed;
-                this.size = 1;
+                this.speed = currentSpeed;
+                this.angularVelocity = currentAngularVelocity;
                 this.color = currentColor;
+                this.pathBlend = currentPathBlend;
                 this.trail = [];
-                this.maxTrailLength = 15;
+                this.maxTrailLength = 30;
                 this.exploded = false;
                 this.particles = [];
                 this.explosionRadius = 0;
-                this.maxExplosionRadius = 5;
-                this.explosionSpeed = 0.5;
+                this.maxExplosionRadius = 30;
+                this.explosionSpeed = 6;
                 this.launchTime = Date.now();
+                this.progress = 0;
+                this.totalDistance = Math.sqrt(
+                    Math.pow(targetX - this.startX, 2) +
+                    Math.pow(targetY - this.startY, 2)
+                );
+
+                // For cycloid: track the angle for the circular motion
+                this.cycloidAngle = 0;
+                this.cycloidRadius = 40;
             }
 
             update() {
@@ -339,24 +618,47 @@ permalink: /greetings/diwali/
                     return this.explosionRadius >= this.maxExplosionRadius && this.particles.length === 0;
                 }
 
-                // Move towards target
-                this.x += this.velocityX;
-                this.y += this.velocityY;
+                this.progress += this.speed / this.totalDistance;
 
-                // Add to trail
-                this.trail.push({ x: this.x, y: this.y, size: this.size });
-                if (this.trail.length > this.maxTrailLength) {
-                    this.trail.shift();
+                if (this.progress >= 1) {
+                    this.x = this.targetX;
+                    this.y = this.targetY;
+                    this.explode();
+                    return false;
                 }
 
-                // Check if reached target (with some tolerance)
-                const distance = Math.sqrt(
-                    Math.pow(this.targetX - this.x, 2) +
-                    Math.pow(this.targetY - this.y, 2)
-                );
+                // Calculate position based on path blend (0 = straight, 1 = parabola)
+                // Straight line
+                const straightX = this.startX + (this.targetX - this.startX) * this.progress;
+                const straightY = this.startY + (this.targetY - this.startY) * this.progress;
 
-                if (distance < 5) {
-                    this.explode();
+                // Parabola: peaks at target, starts from bottom
+                const parabolaHeight = 150;
+                const parabolaX = this.startX + (this.targetX - this.startX) * this.progress;
+                const parabolaY = this.startY + (this.targetY - this.startY) * this.progress -
+                                 parabolaHeight * Math.sin(this.progress * Math.PI);
+
+                // Blend between straight and parabola
+                this.x = straightX + (parabolaX - straightX) * this.pathBlend;
+                this.y = straightY + (parabolaY - straightY) * this.pathBlend;
+
+                // Update cycloid angle - use a fixed increment based on angular velocity
+                // The angle should progress independently of distance to create visible cycloids
+                const angleIncrement = this.angularVelocity * 0.1;
+                this.cycloidAngle += angleIncrement;
+
+                // Add to trail with cycloid offset
+                const cycloidX = this.x + Math.cos(this.cycloidAngle) * this.cycloidRadius;
+                const cycloidY = this.y + Math.sin(this.cycloidAngle) * this.cycloidRadius;
+
+                this.trail.push({
+                    x: cycloidX,
+                    y: cycloidY,
+                    size: this.size,
+                    angle: this.cycloidAngle
+                });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
                 }
 
                 return false;
@@ -463,18 +765,35 @@ permalink: /greetings/diwali/
                     return;
                 }
 
-                // Draw trail
-                for (let i = 0; i < this.trail.length; i++) {
-                    const point = this.trail[i];
-                    const alpha = i / this.trail.length;
-                    const rgb = this.hexToRgb(this.color);
+                // Draw cycloid trail
+                if (this.trail.length > 1) {
                     ctx.beginPath();
-                    ctx.arc(point.x, point.y, point.size * (0.5 + alpha * 0.5), 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.8})`;
-                    ctx.fill();
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+
+                    for (let i = 1; i < this.trail.length; i++) {
+                        const point = this.trail[i];
+                        ctx.lineTo(point.x, point.y);
+                    }
+
+                    const rgb = this.hexToRgb(this.color);
+                    ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6)`;
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+
+                    // Draw fading trail points
+                    for (let i = 0; i < this.trail.length; i++) {
+                        const point = this.trail[i];
+                        const alpha = i / this.trail.length;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 2 * (0.5 + alpha * 0.5), 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.5})`;
+                        ctx.fill();
+                    }
                 }
 
-                // Draw firecracker
+                // Draw firecracker at actual position (not cycloid offset)
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
@@ -507,6 +826,9 @@ permalink: /greetings/diwali/
         let lastFirecrackerTime = 0;
 
         function animate() {
+            // Update preset interpolation
+            updateInterpolation();
+            
             // Clear canvas with semi-transparent background for motion blur effect
             ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
