@@ -30,6 +30,13 @@ permalink: /greetings/diwali/
             display: block;
         }
 
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
         #instructions {
             position: absolute;
             top: 20px;
@@ -42,7 +49,7 @@ permalink: /greetings/diwali/
         }
 
         #controls {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
@@ -54,6 +61,7 @@ permalink: /greetings/diwali/
             flex-wrap: wrap;
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
         }
 
         .control-group {
@@ -124,7 +132,7 @@ permalink: /greetings/diwali/
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
         }
-        
+
         .presets-section {
             display: flex;
             gap: 10px;
@@ -132,7 +140,7 @@ permalink: /greetings/diwali/
             flex-wrap: wrap;
             margin-left: 15px;
         }
-        
+
         .preset-button {
             padding: 8px 12px;
             background: rgba(255, 255, 255, 0.1);
@@ -145,17 +153,17 @@ permalink: /greetings/diwali/
             min-width: 40px;
             text-align: center;
         }
-        
+
         .preset-button:hover {
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.3);
         }
-        
+
         .preset-button.active {
             background: #ff6600;
             border-color: #ff8833;
         }
-        
+
         .save-preset-button {
             padding: 8px 12px;
             background: #ff6600;
@@ -168,11 +176,11 @@ permalink: /greetings/diwali/
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .save-preset-button:hover {
             background: #ff8833;
         }
-        
+
         .loop-button {
             padding: 8px 12px;
             background: rgba(255, 255, 255, 0.1);
@@ -185,18 +193,66 @@ permalink: /greetings/diwali/
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .loop-button:hover {
             background: #ff6600;
             color: #fff;
         }
-        
+
         .loop-button.active {
             background: #ff6600;
             color: #fff;
             border-color: #ff8833;
         }
-        
+
+        .camera-button {
+            padding: 8px 12px;
+            background: rgba(0, 150, 255, 0.8);
+            border: 1px solid #00aaff;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .camera-button:hover {
+            background: rgba(0, 180, 255, 0.9);
+        }
+
+        .camera-button.active {
+            background: #00aaff;
+            border-color: #00ccff;
+        }
+
+        .camera-button.loading {
+            background: rgba(0, 150, 255, 0.4);
+            cursor: wait;
+        }
+
+        #camera-feed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            object-fit: cover;
+            z-index: 1;
+            display: none;
+        }
+
+        #segmentation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            z-index: 2;
+            display: none;
+        }
+
         .preset-color-preview {
             width: 16px;
             height: 16px;
@@ -220,24 +276,6 @@ permalink: /greetings/diwali/
             border-color: #666;
         }
 
-        #color-picker {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        #color-picker::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-
-        #color-picker::-webkit-color-swatch {
-            border: 2px solid #444;
-            border-radius: 4px;
-        }
-
         #delay-display {
             color: #aaa;
             font-size: 12px;
@@ -248,6 +286,8 @@ permalink: /greetings/diwali/
 </head>
 <body>
     <div id="instructions">Click anywhere to launch a firecracker!</div>
+    <video id="camera-feed" autoplay muted playsinline></video>
+    <canvas id="segmentation-canvas"></canvas>
     <canvas id="canvas"></canvas>
 
     <div id="controls">
@@ -294,10 +334,7 @@ permalink: /greetings/diwali/
             </div>
         </div>
 
-        <div class="control-group">
-            <label for="color-picker">Result Color</label>
-            <input type="color" id="color-picker" value="#ff6600">
-        </div>
+        <button class="camera-button" id="toggle-camera">Enable Camera</button>
         <button class="save-preset-button" id="save-preset">Save Preset</button>
         <button class="loop-button" id="loop-presets">Loop Presets</button>
         <div class="presets-section" id="presets-container">
@@ -310,8 +347,7 @@ permalink: /greetings/diwali/
         const ctx = canvas.getContext('2d');
         const delaySlider = document.getElementById('delay');
         const delayDisplay = document.getElementById('delay-display');
-        const colorPicker = document.getElementById('color-picker');
-        
+
         // Element sliders
         const copperSlider = document.getElementById('copper');
         const strontiumSlider = document.getElementById('strontium');
@@ -320,7 +356,7 @@ permalink: /greetings/diwali/
         const strontiumValue = document.getElementById('strontium-value');
         const copperChlorideValue = document.getElementById('copper-chloride-value');
         const mixedColorPreview = document.getElementById('mixed-color-preview');
-        
+
         // Path controls
         const pathBlendSlider = document.getElementById('path-blend');
         const pathBlendValue = document.getElementById('path-blend-value');
@@ -328,7 +364,13 @@ permalink: /greetings/diwali/
         const angularVelocitySlider = document.getElementById('angular-velocity');
         const speedValue = document.getElementById('speed-value');
         const angularVelocityValue = document.getElementById('angular-velocity-value');
-        
+
+        // Camera controls
+        const cameraButton = document.getElementById('toggle-camera');
+        const cameraFeed = document.getElementById('camera-feed');
+        const segmentationCanvas = document.getElementById('segmentation-canvas');
+        const segmentationCtx = segmentationCanvas.getContext('2d');
+
         // Preset controls
         const savePresetButton = document.getElementById('save-preset');
         const loopButton = document.getElementById('loop-presets');
@@ -336,7 +378,7 @@ permalink: /greetings/diwali/
 
         // Current settings
         let currentDelay = parseFloat(delaySlider.value);
-        let currentColor = colorPicker.value;
+        let currentColor = '#ff6600'; // Default orange
         let currentPathBlend = parseInt(pathBlendSlider.value) / 100; // 0 to 1
         let currentSpeed = parseInt(speedSlider.value);
         let currentAngularVelocity = parseFloat(angularVelocitySlider.value);
@@ -347,7 +389,14 @@ permalink: /greetings/diwali/
             strontium: { r: 255, g: 50, b: 0 },    // Red
             copperChloride: { r: 0, g: 150, b: 255 } // Blue
         };
-        
+
+        // Camera system
+        let cameraStream = null;
+        let isCameraEnabled = false;
+        let bodyPixModel = null;
+        let tfLoaded = false;
+        let segmentationInterval = null;
+
         // Preset system
         let presets = [];
         let currentPresetIndex = null;
@@ -358,7 +407,7 @@ permalink: /greetings/diwali/
         let isLooping = false;
         let loopInterval = null;
         let loopDelay = 3000; // 3 seconds between presets
-        
+
         // Get current config as an object
         function getCurrentConfig() {
             return {
@@ -371,7 +420,7 @@ permalink: /greetings/diwali/
                 color: currentColor
             };
         }
-        
+
         // Apply config to UI
         function applyConfig(config) {
             copperSlider.value = config.copper;
@@ -380,7 +429,7 @@ permalink: /greetings/diwali/
             pathBlendSlider.value = config.pathBlend;
             speedSlider.value = config.speed;
             angularVelocitySlider.value = config.angularVelocity;
-            
+
             // Update display values
             copperValue.textContent = config.copper + '%';
             strontiumValue.textContent = config.strontium + '%';
@@ -388,25 +437,24 @@ permalink: /greetings/diwali/
             pathBlendValue.textContent = config.pathBlend + '%';
             speedValue.textContent = config.speed;
             angularVelocityValue.textContent = config.angularVelocity.toFixed(1);
-            
+
             // Update mixed color
             updateMixedColor();
-            colorPicker.value = config.color;
             mixedColorPreview.style.backgroundColor = config.color;
             currentColor = config.color;
-            
+
             // Update current settings
             currentPathBlend = config.pathBlend / 100;
             currentSpeed = config.speed;
             currentAngularVelocity = config.angularVelocity;
         }
-        
+
         // Smoothly interpolate to target config
         function updateInterpolation() {
             if (!isInterpolating || !targetConfig) return;
-            
+
             interpolationProgress += interpolationSpeed;
-            
+
             if (interpolationProgress >= 1) {
                 interpolationProgress = 1;
                 isInterpolating = false;
@@ -414,7 +462,7 @@ permalink: /greetings/diwali/
                 targetConfig = null;
                 return;
             }
-            
+
             // Interpolate each value
             const startConfig = getCurrentConfig();
             const config = {
@@ -426,68 +474,68 @@ permalink: /greetings/diwali/
                 angularVelocity: startConfig.angularVelocity + (targetConfig.angularVelocity - startConfig.angularVelocity) * interpolationProgress,
                 color: blendColors(startConfig.color, targetConfig.color, interpolationProgress)
             };
-            
+
             applyConfig(config);
         }
-        
+
         // Blend two hex colors
         function blendColors(color1, color2, ratio) {
             const r1 = parseInt(color1.slice(1, 3), 16);
             const g1 = parseInt(color1.slice(3, 5), 16);
             const b1 = parseInt(color1.slice(5, 7), 16);
-            
+
             const r2 = parseInt(color2.slice(1, 3), 16);
             const g2 = parseInt(color2.slice(3, 5), 16);
             const b2 = parseInt(color2.slice(5, 7), 16);
-            
+
             const r = Math.round(r1 + (r2 - r1) * ratio);
             const g = Math.round(g1 + (g2 - g1) * ratio);
             const b = Math.round(b1 + (b2 - b1) * ratio);
-            
+
             return rgbToHex(r, g, b);
         }
-        
+
         // Save current preset
         function savePreset() {
             const config = getCurrentConfig();
             presets.push(config);
             renderPresets();
         }
-        
+
         // Render preset buttons
         function renderPresets() {
             presetsContainer.innerHTML = '';
-            
+
             presets.forEach((preset, index) => {
                 const button = document.createElement('button');
                 button.className = 'preset-button';
                 if (currentPresetIndex === index) {
                     button.classList.add('active');
                 }
-                
+
                 const colorPreview = document.createElement('span');
                 colorPreview.className = 'preset-color-preview';
                 colorPreview.style.backgroundColor = preset.color;
-                
+
                 button.appendChild(colorPreview);
                 button.appendChild(document.createTextNode(`Preset ${index + 1}`));
-                
+
                 button.addEventListener('click', () => {
                     // Start interpolation
                     targetConfig = preset;
                     isInterpolating = true;
                     interpolationProgress = 0;
                     currentPresetIndex = index;
-                    
+
                     // Update active state
                     document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
                 });
-                
+
                 presetsContainer.appendChild(button);
             });
         }
-        
+
 
 
         // Update element values and mixed color
@@ -507,7 +555,6 @@ permalink: /greetings/diwali/
                 // Default to orange if all are zero
                 currentColor = '#ff6600';
                 mixedColorPreview.style.backgroundColor = currentColor;
-                colorPicker.value = currentColor;
                 return;
             }
 
@@ -531,7 +578,6 @@ permalink: /greetings/diwali/
             // Convert to hex
             currentColor = rgbToHex(r, g, b);
             mixedColorPreview.style.backgroundColor = currentColor;
-            colorPicker.value = currentColor;
         }
 
         // Helper function to convert RGB to hex
@@ -546,12 +592,6 @@ permalink: /greetings/diwali/
         delaySlider.addEventListener('input', () => {
             currentDelay = parseFloat(delaySlider.value);
             delayDisplay.textContent = currentDelay.toFixed(1) + 's';
-        });
-
-        // Update color from picker (for manual override)
-        colorPicker.addEventListener('input', () => {
-            currentColor = colorPicker.value;
-            mixedColorPreview.style.backgroundColor = currentColor;
         });
 
         // Element slider event listeners
@@ -579,65 +619,381 @@ permalink: /greetings/diwali/
         pathBlendValue.textContent = pathBlendSlider.value + '%';
         speedValue.textContent = currentSpeed;
         angularVelocityValue.textContent = currentAngularVelocity.toFixed(1);
-        
+
         // Initialize presets with current config as first preset
         presets.push(getCurrentConfig());
         renderPresets();
-        
+
+        // Camera button
+        cameraButton.addEventListener('click', toggleCamera);
+
         // Save preset button
         savePresetButton.addEventListener('click', savePreset);
-        
+
         // Loop button
         loopButton.addEventListener('click', toggleLoop);
-        
+
+        // Toggle camera on/off
+        async function toggleCamera() {
+            if (isCameraEnabled) {
+                // Disable camera
+                stopCamera();
+                cameraButton.textContent = 'Enable Camera';
+                cameraButton.classList.remove('active');
+                isCameraEnabled = false;
+            } else {
+                // Enable camera
+                cameraButton.textContent = 'Loading...';
+                cameraButton.classList.add('loading');
+
+                try {
+                    // Check WebGL support
+                    const canvasTest = document.createElement('canvas');
+                    const gl = canvasTest.getContext('webgl') || canvasTest.getContext('experimental-webgl');
+                    if (!gl) {
+                        console.error('WebGL not supported in this browser');
+                        throw new Error('WebGL not supported');
+                    }
+                    
+                    // Request camera access
+                    cameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'user'
+                        }
+                    });
+
+                    cameraFeed.srcObject = cameraStream;
+
+                    // Wait for video to start playing
+                    await new Promise((resolve) => {
+                        cameraFeed.onloadedmetadata = () => {
+                            // Also wait for video to have actual dimensions
+                            if (cameraFeed.videoWidth === 0 || cameraFeed.videoHeight === 0) {
+                                // Sometimes metadata loads but dimensions are 0, wait a bit more
+                                setTimeout(resolve, 500);
+                            } else {
+                                resolve();
+                            }
+                        };
+                    });
+
+                    // Load TensorFlow.js and BodyPix
+                    await loadTfAndBodyPix();
+                    
+                    // Start segmentation
+                    startSegmentation();
+                    
+                    cameraButton.textContent = 'Disable Camera';
+                    cameraButton.classList.remove('loading');
+                    cameraButton.classList.add('active');
+                    isCameraEnabled = true;
+
+                } catch (error) {
+                    cameraButton.textContent = 'Enable Camera';
+                    cameraButton.classList.remove('loading');
+                    // Fallback to black background (door open for future)
+                }
+            }
+        }
+
+        // Load TensorFlow.js and BodyPix
+        async function loadTfAndBodyPix() {
+            if (tfLoaded) return;
+
+            // Load TensorFlow.js from CDN - use v2.8.5 for BodyPix compatibility
+            await new Promise((resolve, reject) => {
+                if (typeof tf !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.8.5';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            
+            // Set TF.js backend to CPU if WebGL fails
+            if (typeof tf !== 'undefined') {
+                try {
+                    await tf.setBackend('webgl');
+                } catch (e) {
+                    try {
+                        await tf.setBackend('cpu');
+                    } catch (e2) {
+                        throw e2;
+                    }
+                }
+            }
+            
+            // Load BodyPix from CDN
+            await new Promise((resolve, reject) => {
+                if (typeof bodyPix !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@1.0.0';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            
+            // Load model - use default configuration
+            bodyPixModel = await bodyPix.load();
+
+            tfLoaded = true;
+        }
+
+        // Offscreen canvas for BodyPix input
+        const offscreenCanvas = document.createElement('canvas');
+        const offscreenCtx = offscreenCanvas.getContext('2d');
+
+        // Process segmentation result
+        function processSegmentation(segmentation) {
+            // Draw segmentation mask to canvas
+            const mask = segmentation.data;
+            const width = segmentation.width;
+            const height = segmentation.height;
+
+            // Set segmentation canvas size to match
+            if (segmentationCanvas.width !== width || segmentationCanvas.height !== height) {
+                segmentationCanvas.width = width;
+                segmentationCanvas.height = height;
+            }
+
+            // Clear segmentation canvas
+            segmentationCtx.clearRect(0, 0, width, height);
+
+            // Clear segmentation canvas with transparent background
+            segmentationCtx.clearRect(0, 0, width, height);
+            
+            // Clear and draw camera to segmentation canvas
+            segmentationCtx.clearRect(0, 0, width, height);
+            segmentationCtx.drawImage(cameraFeed, 0, 0, width, height);
+            
+            // Get camera image data
+            const cameraData = segmentationCtx.getImageData(0, 0, width, height);
+            
+            // Create output with transparency
+            // BodyPix returns: 0 = background, 1 = person, 2 = uncertain
+            const outputImageData = segmentationCtx.createImageData(width, height);
+            
+            // Feathering parameters
+            const featherRadius = 3; // pixels
+            
+            for (let i = 0; i < mask.length; i++) {
+                const baseIndex = i * 4;
+                const x = i % width;
+                const y = Math.floor(i / width);
+                
+                // Copy RGB from camera
+                outputImageData.data[baseIndex] = cameraData.data[baseIndex];
+                outputImageData.data[baseIndex + 1] = cameraData.data[baseIndex + 1];
+                outputImageData.data[baseIndex + 2] = cameraData.data[baseIndex + 2];
+                
+                // Set alpha with feathering at edges
+                // BodyPix: 1 = person, 0 = background
+                if (mask[i] === 1) {
+                    // Person pixel - check if near background edge
+                    let minDist = featherRadius + 1;
+                    for (let dy = -featherRadius; dy <= featherRadius; dy++) {
+                        for (let dx = -featherRadius; dx <= featherRadius; dx++) {
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                const neighborIndex = ny * width + nx;
+                                if (mask[neighborIndex] === 0) {
+                                    // Found background neighbor - calculate distance
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    minDist = Math.min(minDist, dist);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Set alpha based on distance to edge
+                    if (minDist <= featherRadius) {
+                        // At edge - feather the alpha
+                        const alpha = Math.round(255 * (minDist / featherRadius));
+                        outputImageData.data[baseIndex + 3] = alpha;
+                    } else {
+                        // Inside person - fully opaque
+                        outputImageData.data[baseIndex + 3] = 255;
+                    }
+                } else {
+                    // Background pixel
+                    outputImageData.data[baseIndex + 3] = 0;
+                }
+            }
+            
+            // Put the masked image back to segmentation canvas
+            segmentationCtx.clearRect(0, 0, width, height);
+            segmentationCtx.putImageData(outputImageData, 0, 0);
+            
+            segmentationCtx.restore();
+        }
+
+        // Start segmentation loop
+        function startSegmentation() {
+            // Keep both camera feed and segmentation canvas hidden
+            // We only need them as sources, not for display
+            cameraFeed.style.display = 'none';
+            segmentationCanvas.style.display = 'none';
+
+            // Resize to match window
+            resizeCanvas();
+
+            // Wait for video to have valid dimensions
+            const waitForDimensions = () => {
+                if (cameraFeed.videoWidth > 0 && cameraFeed.videoHeight > 0) {
+                    // Set segmentation canvas to match video dimensions
+                    segmentationCanvas.width = cameraFeed.videoWidth;
+                    segmentationCanvas.height = cameraFeed.videoHeight;
+
+                    // Start processing frames
+                    processFrame();
+                } else {
+                    setTimeout(waitForDimensions, 100);
+                }
+            };
+            waitForDimensions();
+        }
+
+        // Process each frame
+        async function processFrame() {
+            if (!isCameraEnabled || !bodyPixModel || cameraFeed.readyState < 3) {
+                segmentationInterval = requestAnimationFrame(processFrame);
+                return;
+            }
+
+            // Check if video has valid dimensions
+            if (!cameraFeed.videoWidth || !cameraFeed.videoHeight || cameraFeed.videoWidth === 0 || cameraFeed.videoHeight === 0) {
+                segmentationInterval = requestAnimationFrame(processFrame);
+                return;
+            }
+
+            try {
+                // Draw camera to offscreen canvas with fixed dimensions
+                const inputWidth = cameraFeed.videoWidth || 640;
+                const inputHeight = cameraFeed.videoHeight || 480;
+
+                if (inputWidth === 0 || inputHeight === 0 || isNaN(inputWidth) || isNaN(inputHeight)) {
+                    segmentationInterval = requestAnimationFrame(processFrame);
+                    return;
+                }
+
+                offscreenCanvas.width = inputWidth;
+                offscreenCanvas.height = inputHeight;
+                offscreenCtx.drawImage(cameraFeed, 0, 0, inputWidth, inputHeight);
+
+                // Get segmentation - BodyPix v1.0.0+ uses estimatePersonSegmentation
+                // Use simplest call with no options
+                const segmentation = await bodyPixModel.estimatePersonSegmentation(offscreenCanvas);
+                processSegmentation(segmentation);
+
+            } catch (error) {
+                console.error('Frame processing error:', error);
+                // Try CPU backend if WebGL fails
+                if (error.message && error.message.includes('shader')) {
+                    try {
+                        await tf.setBackend('cpu');
+                        // Draw to offscreen canvas
+                        const inputWidth = cameraFeed.videoWidth || 640;
+                        const inputHeight = cameraFeed.videoHeight || 480;
+                        offscreenCanvas.width = inputWidth;
+                        offscreenCanvas.height = inputHeight;
+                        offscreenCtx.drawImage(cameraFeed, 0, 0, inputWidth, inputHeight);
+
+                        // Retry segmentation with CPU backend
+                        const segmentation = await bodyPixModel.estimatePersonSegmentation(offscreenCanvas);
+                        processSegmentation(segmentation);
+                    } catch (e2) {
+                        console.error('CPU backend also failed:', e2);
+                    }
+                    segmentationInterval = requestAnimationFrame(processFrame);
+                    return;
+                }
+                console.error('Segmentation error:', error);
+            }
+
+            // Continue loop
+            segmentationInterval = requestAnimationFrame(processFrame);
+        }
+
+        // Stop camera
+        function stopCamera() {
+            if (segmentationInterval) {
+                cancelAnimationFrame(segmentationInterval);
+                segmentationInterval = null;
+            }
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+
+            cameraFeed.srcObject = null;
+            cameraFeed.style.display = 'none';
+            segmentationCanvas.style.display = 'none';
+
+            // Clean up TF.js
+            if (tfLoaded && typeof tf !== 'undefined') {
+                tf.disposeVariables();
+                // Don't set tfLoaded to false - keep model loaded for next use
+            }
+        }
+
         // Loop through presets
         function toggleLoop() {
             isLooping = !isLooping;
             loopButton.classList.toggle('active', isLooping);
-            
+
             if (isLooping) {
                 startLoop();
             } else {
                 stopLoop();
             }
         }
-        
+
         function startLoop() {
             if (presets.length === 0) return;
-            
+
             // Start from current preset or first one
             if (currentPresetIndex === null) {
                 currentPresetIndex = 0;
             }
-            
+
             // Highlight current preset
             document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
             if (document.querySelectorAll('.preset-button')[currentPresetIndex]) {
                 document.querySelectorAll('.preset-button')[currentPresetIndex].classList.add('active');
             }
-            
+
             // Apply current preset immediately
             targetConfig = presets[currentPresetIndex];
             isInterpolating = true;
             interpolationProgress = 0;
-            
+
             // Set up interval for next preset
             loopInterval = setInterval(() => {
                 currentPresetIndex = (currentPresetIndex + 1) % presets.length;
-                
+
                 // Update active state
                 document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
                 if (document.querySelectorAll('.preset-button')[currentPresetIndex]) {
                     document.querySelectorAll('.preset-button')[currentPresetIndex].classList.add('active');
                 }
-                
+
                 // Start interpolation to next preset
                 targetConfig = presets[currentPresetIndex];
                 isInterpolating = true;
                 interpolationProgress = 0;
             }, loopDelay);
         }
-        
+
         function stopLoop() {
             if (loopInterval) {
                 clearInterval(loopInterval);
@@ -647,8 +1003,19 @@ permalink: /greetings/diwali/
 
         // Set canvas to full window size
         function resizeCanvas() {
+            const controlsHeight = 60;
             canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight - 60; // Account for controls
+            canvas.height = window.innerHeight - controlsHeight;
+
+            // Update camera feed size
+            cameraFeed.style.width = `${window.innerWidth}px`;
+            cameraFeed.style.height = `${window.innerHeight - controlsHeight}px`;
+
+            // If camera is enabled, update segmentation canvas
+            if (isCameraEnabled && cameraFeed.videoWidth > 0) {
+                segmentationCanvas.width = cameraFeed.videoWidth;
+                segmentationCanvas.height = cameraFeed.videoHeight;
+            }
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
@@ -915,19 +1282,51 @@ permalink: /greetings/diwali/
         function animate() {
             // Update preset interpolation
             updateInterpolation();
-            
-            // Clear canvas with semi-transparent background for motion blur effect
-            ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Update and draw firecrackers
-            for (let i = firecrackers.length - 1; i >= 0; i--) {
-                const firecracker = firecrackers[i];
-                const done = firecracker.update();
-                firecracker.draw();
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                if (done) {
-                    firecrackers.splice(i, 1);
+            if (isCameraEnabled && cameraFeed.readyState >= 3) {
+                // Camera is active - composite fireworks behind user
+
+                // Get display dimensions
+                const displayWidth = canvas.width;
+                const displayHeight = canvas.height;
+
+                // Draw firecrackers first (they go in the background)
+                for (let i = firecrackers.length - 1; i >= 0; i--) {
+                    const firecracker = firecrackers[i];
+                    const done = firecracker.update();
+                    firecracker.draw();
+
+                    if (done) {
+                        firecrackers.splice(i, 1);
+                    }
+                }
+
+                // Draw the segmented camera feed (person only) on top
+                // This will show the person with transparent background over the firecrackers
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.drawImage(segmentationCanvas,
+                    0, 0, segmentationCanvas.width, segmentationCanvas.height,
+                    0, 0, displayWidth, displayHeight);
+                ctx.restore();
+
+            } else {
+                // No camera - use original behavior with black background
+                ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Update and draw firecrackers
+                for (let i = firecrackers.length - 1; i >= 0; i--) {
+                    const firecracker = firecrackers[i];
+                    const done = firecracker.update();
+                    firecracker.draw();
+
+                    if (done) {
+                        firecrackers.splice(i, 1);
+                    }
                 }
             }
 
@@ -952,6 +1351,11 @@ permalink: /greetings/diwali/
             const y = touch.clientY - rect.top;
 
             firecrackers.push(new Firecracker(x, y));
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
         });
 
         // Auto-launch firecrackers with delay
