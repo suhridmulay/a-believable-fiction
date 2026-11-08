@@ -8,11 +8,14 @@ tags: post
 draft: true
 ---
 
-Tokens Tokens everywhere Not a thought to think
-Claude in the cranium, gone is the flesh and pink.
+Tokens Tokens everywhere Not a thought to think,
+Claude sits in the head, gone is the flesh and pink.
 
-Streams of vectors statistics, consuming book and ink
-6 months in they had said, the coding ship would sink
+Streams of vectors statistics, consuming book and ink.
+6 months in businesses said, the coding ship would sink
 
 Lucidating, hallucinating, phabricating, and other gerunds to link
-Tokens token everywhere not a thought to think.
+You are absolutely right! Load bearing seams to the brink.
+
+Thoughts strewn everywhere, 10x productivity yet such stink
+Tokens tokens everywhere, but not a thought to think
