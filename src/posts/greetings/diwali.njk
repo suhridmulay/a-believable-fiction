@@ -21,7 +21,7 @@ permalink: /greetings/diwali/
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montez&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kavoon&family=Montez&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -36,7 +36,15 @@ permalink: /greetings/diwali/
             height: 100vh;
             width: 100vw;
             cursor: crosshair;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: Kavoon, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Form controls don't inherit fonts from body — make them */
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
         }
 
         canvas {
@@ -276,6 +284,23 @@ permalink: /greetings/diwali/
             margin-left: 15px;
         }
 
+        .controls-credits {
+            width: 100%;
+            color: #777;
+            font-size: 10px;
+            text-align: right;
+            letter-spacing: 0.3px;
+        }
+
+        .controls-credits a {
+            color: #999;
+            text-decoration: underline;
+        }
+
+        .controls-credits a:hover {
+            color: #ddd;
+        }
+
         .preset-button {
             padding: 8px 12px;
             background: rgba(255, 255, 255, 0.1);
@@ -431,7 +456,7 @@ permalink: /greetings/diwali/
                 gap: 15px;
                 width: calc(100vw - 40px);
                 max-width: none;
-                max-height: 25vh;
+                max-height: 33vh;
                 overflow-y: auto;
                 padding: 15px;
             }
@@ -441,7 +466,7 @@ permalink: /greetings/diwali/
                 padding: 5px;
             }
 
-            /* In landscape, 25vh is too short to be usable; give it more room */
+            /* In landscape, the portrait cap is too short to be usable; give it more room */
             @media (orientation: landscape) {
                 #controls {
                     max-height: 60vh;
@@ -560,6 +585,8 @@ permalink: /greetings/diwali/
         <div class="presets-section" id="presets-container">
             <!-- Preset buttons will be added here dynamically -->
         </div>
+
+        <div class="controls-credits">OG photo by <a href="https://unsplash.com/@devang_punia" target="_blank" rel="noopener noreferrer">Devang Punia</a></div>
     </div>
 
     <script>
