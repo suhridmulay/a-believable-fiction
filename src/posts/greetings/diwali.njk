@@ -1,0 +1,1400 @@
+---
+title: Diwali Greetings
+layout: base.njk
+permalink: /greetings/diwali/
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Diwali!</title>
+
+    <meta property="og:title" content="Happy Diwali!">
+    <meta property="og:description" content="Best wishes">
+    <meta property="og:image" content="{{ website.url or 'https://abelievablefiction.net' }}/assets/diwali-og-image.jpg">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{{ website.url or 'https://abelievablefiction.net' }}/assets/diwali-og-image.jpg">
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kavoon&family=Montez&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0a0a1a;
+            height: 100vh;
+            width: 100vw;
+            cursor: crosshair;
+            font-family: Kavoon, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Form controls don't inherit fonts from body — make them */
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            text-align: center;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255, 190, 100, 0.5);
+
+            font-family: 'Montez';
+            font-size: clamp(32px, 5vw, 48px);
+            white-space: nowrap;
+        }
+
+        /* Per-letter ember effect on the greeting text */
+        .letter-sparkle {
+            display: inline-block;
+            animation: letter-sparkle 2.5s ease-in-out infinite;
+        }
+
+        @keyframes letter-sparkle {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+                filter: blur(0);
+            }
+            50% {
+                transform: scale(var(--sparkle-zoom, 1.25));
+                opacity: var(--sparkle-fade, 0.3);
+                filter: blur(1px);
+            }
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 95vw;
+            background: rgba(10, 10, 26, 0.75);
+            padding: 15px 25px;
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            flex-wrap: wrap;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            transition: left 0.3s ease, transform 0.3s ease, padding 0.3s ease, border-radius 0.3s ease;
+        }
+
+        #controls.collapsed {
+            left: 20px;
+            transform: none;
+            padding: 5px;
+            gap: 0;
+            border-radius: 50%;
+        }
+
+        #controls.collapsed > *:not(.controls-toggle) {
+            display: none;
+        }
+
+        .controls-toggle {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .controls-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            color: #ccc;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-group input[type="range"] {
+            padding: 8px 12px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #1a1a2a;
+            color: #fff;
+            font-size: 14px;
+            width: 120px;
+        }
+
+        .control-group input[type="color"] {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .control-group input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .control-group input[type="color"]::-webkit-color-swatch {
+            border: 2px solid #444;
+            border-radius: 4px;
+        }
+
+        .element-slider {
+            width: 150px;
+        }
+
+        /* Chemical sliders: track and thumb tinted with each element's emission colour */
+        #barium { --chemical-color: #4dff66; }           /* BaCl — green */
+        #strontium { --chemical-color: #ff3322; }         /* Sr — red */
+        #copper-chloride { --chemical-color: #2299ff; }   /* CuCl — blue */
+
+        .chemical-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 20px;
+        }
+
+        .chemical-slider::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #1a1a2a, var(--chemical-color));
+        }
+
+        .chemical-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: var(--chemical-color);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 8px var(--chemical-color);
+        }
+
+        .chemical-slider::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #1a1a2a, var(--chemical-color));
+        }
+
+        .chemical-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--chemical-color);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 8px var(--chemical-color);
+        }
+
+        .element-value {
+            color: #aaa;
+            font-size: 11px;
+            text-align: right;
+            min-width: 40px;
+        }
+
+        .path-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .path-preview-row .element-slider {
+            flex: 1;
+            width: auto;
+        }
+
+        #path-curve-preview {
+            flex-shrink: 0;
+            width: 48px;
+            height: 32px;
+        }
+
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            margin-left: 10px;
+        }
+
+        .elements-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .presets-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-left: 15px;
+        }
+
+        .controls-credits {
+            width: 100%;
+            color: #777;
+            font-size: 10px;
+            text-align: right;
+            letter-spacing: 0.3px;
+        }
+
+        .controls-credits a {
+            color: #999;
+            text-decoration: underline;
+        }
+
+        .controls-credits a:hover {
+            color: #ddd;
+        }
+
+        .preset-button {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .preset-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .preset-button.active {
+            background: #ff6600;
+            border-color: #ff8833;
+        }
+
+        .save-preset-button {
+            padding: 8px 12px;
+            background: #ff6600;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .save-preset-button:hover {
+            background: #ff8833;
+        }
+
+        .loop-button {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ff6600;
+            border-radius: 4px;
+            color: #ff6600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .loop-button:hover {
+            background: #ff6600;
+            color: #fff;
+        }
+
+        .loop-button.active {
+            background: #ff6600;
+            color: #fff;
+            border-color: #ff8833;
+        }
+
+        .camera-button {
+            padding: 8px 12px;
+            background: rgba(0, 150, 255, 0.8);
+            border: 1px solid #00aaff;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .camera-button:hover {
+            background: rgba(0, 180, 255, 0.9);
+        }
+
+        .camera-button.active {
+            background: #00aaff;
+            border-color: #00ccff;
+        }
+
+        .camera-button.loading {
+            background: rgba(0, 150, 255, 0.4);
+            cursor: wait;
+        }
+
+        #camera-feed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            object-fit: cover;
+            z-index: 1;
+            display: none;
+        }
+
+        #segmentation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 60px);
+            z-index: 2;
+            display: none;
+        }
+
+        .preset-color-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .path-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        #delay-display {
+            color: #aaa;
+            font-size: 12px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        /* Mobile: stack sliders vertically so nothing gets clipped.
+           Covers portrait phones, small tablets, and landscape phones
+           (which are wide but short). */
+        @media (max-width: 768px), (orientation: landscape) and (max-height: 500px) {
+            #controls {
+                flex-direction: column;
+                /* Base rule has flex-wrap: wrap; with a capped height that would
+                   spill items into side-by-side columns instead of scrolling */
+                flex-wrap: nowrap;
+                align-items: stretch;
+                gap: 15px;
+                width: calc(100vw - 40px);
+                max-width: none;
+                max-height: 33vh;
+                overflow-y: auto;
+                padding: 15px;
+            }
+
+            #controls.collapsed {
+                width: auto;
+                padding: 5px;
+            }
+
+            /* In landscape, the portrait cap is too short to be usable; give it more room */
+            @media (orientation: landscape) {
+                #controls {
+                    max-height: 60vh;
+                }
+            }
+
+            .controls-toggle {
+                position: sticky;
+                top: 0;
+                align-self: flex-end;
+            }
+
+            .elements-section,
+            .path-section {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                width: 100%;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            .control-group input[type="range"],
+            .element-slider {
+                width: 100%;
+            }
+
+            .path-preview-row .element-slider {
+                width: auto;
+            }
+
+            .color-preview {
+                margin-left: 0;
+            }
+
+            .presets-section {
+                margin-left: 0;
+                justify-content: center;
+            }
+
+            /* Greeting: two lines — "Happy Diwali" / "To ..." */
+            #instructions {
+                white-space: normal;
+                font-size: clamp(36px, 11vw, 48px);
+                line-height: 1.15;
+            }
+
+            #instructions > span {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions"><span id="greeting-title">Happy Diwali</span><span id="greeting-to"> To You!</span></div>
+    <video id="camera-feed" autoplay muted playsinline></video>
+    <canvas id="segmentation-canvas"></canvas>
+    <canvas id="canvas"></canvas>
+
+    <div id="controls">
+        <button class="controls-toggle" id="controls-toggle" aria-label="Minimise controls" aria-expanded="true" title="Minimise controls">—</button>
+
+        <div class="control-group">
+            <label for="delay">Delay (seconds)</label>
+            <input type="range" id="delay" min="0.1" max="5" step="0.1" value="1" class="element-slider">
+            <span id="delay-display" class="element-value">1.0s</span>
+        </div>
+
+        <div class="elements-section">
+            <div class="control-group">
+                <label for="barium">Barium (Green)</label>
+                <input type="range" id="barium" min="0" max="100" value="30" class="element-slider chemical-slider">
+                <span id="barium-value" class="element-value">30%</span>
+            </div>
+            <div class="control-group">
+                <label for="strontium">Strontium (Red)</label>
+                <input type="range" id="strontium" min="0" max="100" value="70" class="element-slider chemical-slider">
+                <span id="strontium-value" class="element-value">70%</span>
+            </div>
+            <div class="control-group">
+                <label for="copper-chloride">CuCl₂ (Blue)</label>
+                <input type="range" id="copper-chloride" min="0" max="100" value="0" class="element-slider chemical-slider">
+                <span id="copper-chloride-value" class="element-value">0%</span>
+            </div>
+            <div class="color-preview" id="mixed-color-preview"></div>
+        </div>
+
+        <div class="path-section">
+            <div class="control-group">
+                <label for="path-blend">Path Blend</label>
+                <div class="path-preview-row">
+                    <input type="range" id="path-blend" min="0" max="100" value="0" class="element-slider">
+                    <svg id="path-curve-preview" viewBox="0 0 48 32" aria-hidden="true">
+                        <line x1="5" y1="27" x2="43" y2="5" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 3"/>
+                        <path id="path-curve" d="M5 27 L43 5" fill="none" stroke="#ff8833" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <span id="path-blend-value" class="element-value">0%</span>
+            </div>
+            <div class="control-group">
+                <label for="speed">Speed</label>
+                <input type="range" id="speed" min="2" max="20" step="0.1" value="8" class="element-slider">
+                <span id="speed-value" class="element-value">8.0</span>
+            </div>
+            <div class="control-group">
+                <label for="angular-velocity">Angular Velocity</label>
+                <input type="range" id="angular-velocity" min="0" max="1.5708" step="0.01" value="0.5" class="element-slider">
+                <span id="angular-velocity-value" class="element-value">0.50 rad</span>
+            </div>
+        </div>
+
+        <button class="save-preset-button" id="save-preset">Save Preset</button>
+        <button class="loop-button" id="loop-presets">Loop Presets</button>
+        <div class="presets-section" id="presets-container">
+            <!-- Preset buttons will be added here dynamically -->
+        </div>
+
+        <div class="controls-credits">OG photo by <a href="https://unsplash.com/@devang_punia" target="_blank" rel="noopener noreferrer">Devang Punia</a></div>
+    </div>
+
+    <script>
+        const user = new URLSearchParams(window.location.search).get('to') || "To You!";
+
+        // Split text into letters, each with its own random zoom/dissolve
+        // animation so it shimmers like explosion sparks
+        function sparkleize(element, text) {
+            element.textContent = '';
+            [...text].forEach((ch) => {
+                const letter = document.createElement('span');
+                letter.className = 'letter-sparkle';
+                letter.textContent = ch === ' ' ? '\u00A0' : ch;
+                // Warm ember tint: gold to orange, slightly different per letter
+                const hue = 20 + Math.random() * 25;
+                const sat = 80 + Math.random() * 20;
+                const light = 60 + Math.random() * 15;
+                letter.style.color = `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%)`;
+                letter.style.setProperty('--sparkle-zoom', (1.1 + Math.random() * 0.35).toFixed(2));
+                letter.style.setProperty('--sparkle-fade', (0.15 + Math.random() * 0.45).toFixed(2));
+                letter.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
+                letter.style.animationDuration = (1.8 + Math.random() * 2.2).toFixed(2) + 's';
+                element.appendChild(letter);
+            });
+        }
+
+        sparkleize(document.getElementById("greeting-title"), "Happy Diwali");
+        sparkleize(document.getElementById("greeting-to"), " " + user.trim());
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const delaySlider = document.getElementById('delay');
+        const delayDisplay = document.getElementById('delay-display');
+
+        // Chemical sliders
+        const bariumSlider = document.getElementById('barium');
+        const strontiumSlider = document.getElementById('strontium');
+        const copperChlorideSlider = document.getElementById('copper-chloride');
+        const bariumValue = document.getElementById('barium-value');
+        const strontiumValue = document.getElementById('strontium-value');
+        const copperChlorideValue = document.getElementById('copper-chloride-value');
+        const mixedColorPreview = document.getElementById('mixed-color-preview');
+
+        // Path controls
+        const pathBlendSlider = document.getElementById('path-blend');
+        const pathBlendValue = document.getElementById('path-blend-value');
+        const pathCurve = document.getElementById('path-curve');
+        const speedSlider = document.getElementById('speed');
+        const angularVelocitySlider = document.getElementById('angular-velocity');
+        const speedValue = document.getElementById('speed-value');
+        const angularVelocityValue = document.getElementById('angular-velocity-value');
+
+        // Preset controls
+        const savePresetButton = document.getElementById('save-preset');
+        const loopButton = document.getElementById('loop-presets');
+        const presetsContainer = document.getElementById('presets-container');
+
+        // Current settings
+        let currentDelay = parseFloat(delaySlider.value);
+        let currentColor = '#ff6600'; // Default orange
+        let currentPathBlend = parseInt(pathBlendSlider.value) / 100; // 0 to 1
+        let currentSpeed = parseFloat(speedSlider.value);
+        let currentAngularVelocity = parseFloat(angularVelocitySlider.value);
+
+        // Element color definitions (real flame colors)
+        const elementColors = {
+            barium: { r: 77, g: 255, b: 102 },      // BaCl — green
+            strontium: { r: 255, g: 50, b: 0 },      // Sr — red
+            copperChloride: { r: 0, g: 150, b: 255 } // CuCl — blue
+        };
+
+        // Preset system
+        let presets = [];
+        let currentPresetIndex = null;
+        let isInterpolating = false;
+        let interpolationProgress = 0;
+        let interpolationSpeed = 0.02;
+        let targetConfig = null;
+        let isLooping = false;
+        let loopInterval = null;
+        let loopDelay = 3000; // 3 seconds between presets
+
+        // Get current config as an object
+        function getCurrentConfig() {
+            return {
+                barium: parseInt(bariumSlider.value),
+                strontium: parseInt(strontiumSlider.value),
+                copperChloride: parseInt(copperChlorideSlider.value),
+                pathBlend: parseInt(pathBlendSlider.value),
+                speed: parseFloat(speedSlider.value),
+                angularVelocity: parseFloat(angularVelocitySlider.value),
+                color: currentColor
+            };
+        }
+
+        // Apply config to UI
+        function applyConfig(config) {
+            // config.copper fallback keeps presets saved before the Barium rename working
+            bariumSlider.value = config.barium ?? config.copper ?? 0;
+            strontiumSlider.value = config.strontium;
+            copperChlorideSlider.value = config.copperChloride;
+            pathBlendSlider.value = config.pathBlend;
+            speedSlider.value = config.speed;
+            angularVelocitySlider.value = config.angularVelocity;
+
+            // Update display values
+            bariumValue.textContent = (config.barium ?? config.copper ?? 0) + '%';
+            strontiumValue.textContent = config.strontium + '%';
+            copperChlorideValue.textContent = config.copperChloride + '%';
+            pathBlendValue.textContent = config.pathBlend + '%';
+            speedValue.textContent = config.speed.toFixed(1);
+            angularVelocityValue.textContent = config.angularVelocity.toFixed(2) + ' rad';
+
+            // Update mixed color
+            updateMixedColor();
+            mixedColorPreview.style.backgroundColor = config.color;
+            currentColor = config.color;
+            updatePathCurve();
+
+            // Update current settings
+            currentPathBlend = config.pathBlend / 100;
+            currentSpeed = config.speed;
+            currentAngularVelocity = config.angularVelocity;
+        }
+
+        // Smoothly interpolate to target config
+        function updateInterpolation() {
+            if (!isInterpolating || !targetConfig) return;
+
+            interpolationProgress += interpolationSpeed;
+
+            if (interpolationProgress >= 1) {
+                interpolationProgress = 1;
+                isInterpolating = false;
+                applyConfig(targetConfig);
+                targetConfig = null;
+                return;
+            }
+
+            // Interpolate each value
+            const startConfig = getCurrentConfig();
+            const config = {
+                barium: Math.round(startConfig.barium + ((targetConfig.barium ?? targetConfig.copper ?? 0) - startConfig.barium) * interpolationProgress),
+                strontium: Math.round(startConfig.strontium + (targetConfig.strontium - startConfig.strontium) * interpolationProgress),
+                copperChloride: Math.round(startConfig.copperChloride + (targetConfig.copperChloride - startConfig.copperChloride) * interpolationProgress),
+                pathBlend: Math.round(startConfig.pathBlend + (targetConfig.pathBlend - startConfig.pathBlend) * interpolationProgress),
+                speed: startConfig.speed + (targetConfig.speed - startConfig.speed) * interpolationProgress,
+                angularVelocity: startConfig.angularVelocity + (targetConfig.angularVelocity - startConfig.angularVelocity) * interpolationProgress,
+                color: blendColors(startConfig.color, targetConfig.color, interpolationProgress)
+            };
+
+            applyConfig(config);
+        }
+
+        // Blend two hex colors
+        function blendColors(color1, color2, ratio) {
+            const r1 = parseInt(color1.slice(1, 3), 16);
+            const g1 = parseInt(color1.slice(3, 5), 16);
+            const b1 = parseInt(color1.slice(5, 7), 16);
+
+            const r2 = parseInt(color2.slice(1, 3), 16);
+            const g2 = parseInt(color2.slice(3, 5), 16);
+            const b2 = parseInt(color2.slice(5, 7), 16);
+
+            const r = Math.round(r1 + (r2 - r1) * ratio);
+            const g = Math.round(g1 + (g2 - g1) * ratio);
+            const b = Math.round(b1 + (b2 - b1) * ratio);
+
+            return rgbToHex(r, g, b);
+        }
+
+        // Save current preset
+        function savePreset() {
+            const config = getCurrentConfig();
+            presets.push(config);
+            renderPresets();
+        }
+
+        // Render preset buttons
+        function renderPresets() {
+            presetsContainer.innerHTML = '';
+
+            presets.forEach((preset, index) => {
+                const button = document.createElement('button');
+                button.className = 'preset-button';
+                if (currentPresetIndex === index) {
+                    button.classList.add('active');
+                }
+
+                const colorPreview = document.createElement('span');
+                colorPreview.className = 'preset-color-preview';
+                colorPreview.style.backgroundColor = preset.color;
+
+                button.appendChild(colorPreview);
+                button.appendChild(document.createTextNode(`Preset ${index + 1}`));
+
+                button.addEventListener('click', () => {
+                    // Start interpolation
+                    targetConfig = preset;
+                    isInterpolating = true;
+                    interpolationProgress = 0;
+                    currentPresetIndex = index;
+
+                    // Update active state
+                    document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                });
+
+                presetsContainer.appendChild(button);
+            });
+        }
+
+
+
+        // Update element values and mixed color
+        function updateMixedColor() {
+            const barium = parseInt(bariumSlider.value);
+            const strontium = parseInt(strontiumSlider.value);
+            const copperChloride = parseInt(copperChlorideSlider.value);
+
+            // Update display values
+            bariumValue.textContent = barium + '%';
+            strontiumValue.textContent = strontium + '%';
+            copperChlorideValue.textContent = copperChloride + '%';
+
+            // Calculate mixed color based on chemical ratios
+            const total = barium + strontium + copperChloride;
+            if (total === 0) {
+                // Default to orange if all are zero
+                currentColor = '#ff6600';
+                mixedColorPreview.style.backgroundColor = currentColor;
+                updatePathCurve();
+                return;
+            }
+
+            // Weighted average of RGB values
+            const r = Math.round(
+                (barium * elementColors.barium.r +
+                 strontium * elementColors.strontium.r +
+                 copperChloride * elementColors.copperChloride.r) / total
+            );
+            const g = Math.round(
+                (barium * elementColors.barium.g +
+                 strontium * elementColors.strontium.g +
+                 copperChloride * elementColors.copperChloride.g) / total
+            );
+            const b = Math.round(
+                (barium * elementColors.barium.b +
+                 strontium * elementColors.strontium.b +
+                 copperChloride * elementColors.copperChloride.b) / total
+            );
+
+            // Convert to hex
+            currentColor = rgbToHex(r, g, b);
+            mixedColorPreview.style.backgroundColor = currentColor;
+            updatePathCurve();
+        }
+
+        // Redraw the path curve preview: interpolates from a straight line
+        // to a parabola with the same math as the firecracker's flight path
+        function updatePathCurve() {
+            const blend = parseInt(pathBlendSlider.value) / 100;
+            const x0 = 5, y0 = 27, x1 = 43, y1 = 5;
+            const hump = 12 * blend;
+            const steps = 16;
+            let d = '';
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const x = x0 + (x1 - x0) * t;
+                const y = y0 + (y1 - y0) * t - hump * Math.sin(t * Math.PI);
+                d += (i === 0 ? 'M' : ' L') + x.toFixed(2) + ' ' + y.toFixed(2);
+            }
+            pathCurve.setAttribute('d', d);
+            pathCurve.style.stroke = currentColor;
+        }
+
+        // Helper function to convert RGB to hex
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        // Update delay display
+        delaySlider.addEventListener('input', () => {
+            currentDelay = parseFloat(delaySlider.value);
+            delayDisplay.textContent = currentDelay.toFixed(1) + 's';
+        });
+
+        // Chemical slider event listeners
+        bariumSlider.addEventListener('input', updateMixedColor);
+        strontiumSlider.addEventListener('input', updateMixedColor);
+        copperChlorideSlider.addEventListener('input', updateMixedColor);
+
+        // Path control event listeners
+        pathBlendSlider.addEventListener('input', () => {
+            currentPathBlend = parseInt(pathBlendSlider.value) / 100;
+            pathBlendValue.textContent = pathBlendSlider.value + '%';
+            updatePathCurve();
+        });
+
+        speedSlider.addEventListener('input', () => {
+            currentSpeed = parseFloat(speedSlider.value);
+            speedValue.textContent = currentSpeed.toFixed(1);
+        });
+
+        angularVelocitySlider.addEventListener('input', () => {
+            currentAngularVelocity = parseFloat(angularVelocitySlider.value);
+            angularVelocityValue.textContent = currentAngularVelocity.toFixed(2) + ' rad';
+        });
+
+        // Initialize display values
+        pathBlendValue.textContent = pathBlendSlider.value + '%';
+        speedValue.textContent = currentSpeed.toFixed(1);
+        angularVelocityValue.textContent = currentAngularVelocity.toFixed(2) + ' rad';
+        updatePathCurve();
+
+        // Initialize presets with current config as first preset
+        presets.push(getCurrentConfig());
+        renderPresets();
+
+        // Save preset button
+        savePresetButton.addEventListener('click', savePreset);
+
+        // Loop button
+        loopButton.addEventListener('click', toggleLoop);
+
+        // Minimise / maximise controls
+        const controls = document.getElementById('controls');
+        const controlsToggle = document.getElementById('controls-toggle');
+
+        controlsToggle.addEventListener('click', () => {
+            const collapsed = controls.classList.toggle('collapsed');
+            controlsToggle.textContent = collapsed ? '⚙' : '—';
+            controlsToggle.setAttribute('aria-expanded', String(!collapsed));
+            controlsToggle.setAttribute('aria-label', collapsed ? 'Show controls' : 'Minimise controls');
+            controlsToggle.title = collapsed ? 'Show controls' : 'Minimise controls';
+        });
+
+
+        // Loop through presets
+        function toggleLoop() {
+            isLooping = !isLooping;
+            loopButton.classList.toggle('active', isLooping);
+
+            if (isLooping) {
+                startLoop();
+            } else {
+                stopLoop();
+            }
+        }
+
+        function startLoop() {
+            if (presets.length === 0) return;
+
+            // Start from current preset or first one
+            if (currentPresetIndex === null) {
+                currentPresetIndex = 0;
+            }
+
+            // Highlight current preset
+            document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+            if (document.querySelectorAll('.preset-button')[currentPresetIndex]) {
+                document.querySelectorAll('.preset-button')[currentPresetIndex].classList.add('active');
+            }
+
+            // Apply current preset immediately
+            targetConfig = presets[currentPresetIndex];
+            isInterpolating = true;
+            interpolationProgress = 0;
+
+            // Set up interval for next preset
+            loopInterval = setInterval(() => {
+                currentPresetIndex = (currentPresetIndex + 1) % presets.length;
+
+                // Update active state
+                document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+                if (document.querySelectorAll('.preset-button')[currentPresetIndex]) {
+                    document.querySelectorAll('.preset-button')[currentPresetIndex].classList.add('active');
+                }
+
+                // Start interpolation to next preset
+                targetConfig = presets[currentPresetIndex];
+                isInterpolating = true;
+                interpolationProgress = 0;
+            }, loopDelay);
+        }
+
+        function stopLoop() {
+            if (loopInterval) {
+                clearInterval(loopInterval);
+                loopInterval = null;
+            }
+        }
+
+        // Set canvas to full window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Firecracker class
+        class Firecracker {
+            constructor(targetX, targetY) {
+                this.startX = Math.random() * canvas.width;
+                this.startY = canvas.height + 20;
+                this.x = this.startX;
+                this.y = this.startY;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.speed = currentSpeed;
+                this.angularVelocity = currentAngularVelocity;
+                this.color = currentColor;
+                this.pathBlend = currentPathBlend;
+                this.trail = [];
+                this.maxTrailLength = 30;
+                this.exploded = false;
+                this.particles = [];
+                this.explosionRadius = 0;
+                this.maxExplosionRadius = 30;
+                this.explosionSpeed = 6;
+                this.launchTime = Date.now();
+                this.progress = 0;
+                this.totalDistance = Math.sqrt(
+                    Math.pow(targetX - this.startX, 2) +
+                    Math.pow(targetY - this.startY, 2)
+                );
+
+                // For cycloid: track the angle for the circular motion
+                this.cycloidAngle = 0;
+                this.cycloidRadius = 40;
+            }
+
+            update() {
+                if (this.exploded) {
+                    this.explosionRadius += this.explosionSpeed;
+
+                    // Update particles
+                    for (let i = this.particles.length - 1; i >= 0; i--) {
+                        const p = this.particles[i];
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.05; // reduced gravity
+                        p.life--;
+
+                        if (p.life <= 0) {
+                            this.particles.splice(i, 1);
+                        }
+                    }
+
+                    return this.explosionRadius >= this.maxExplosionRadius && this.particles.length === 0;
+                }
+
+                this.progress += this.speed / this.totalDistance;
+
+                if (this.progress >= 1) {
+                    this.x = this.targetX;
+                    this.y = this.targetY;
+                    this.explode();
+                    return false;
+                }
+
+                // Calculate position based on path blend (0 = straight, 1 = parabola)
+                // Straight line
+                const straightX = this.startX + (this.targetX - this.startX) * this.progress;
+                const straightY = this.startY + (this.targetY - this.startY) * this.progress;
+
+                // Parabola: peaks at target, starts from bottom
+                const parabolaHeight = 150;
+                const parabolaX = this.startX + (this.targetX - this.startX) * this.progress;
+                const parabolaY = this.startY + (this.targetY - this.startY) * this.progress -
+                                 parabolaHeight * Math.sin(this.progress * Math.PI);
+
+                // Blend between straight and parabola
+                this.x = straightX + (parabolaX - straightX) * this.pathBlend;
+                this.y = straightY + (parabolaY - straightY) * this.pathBlend;
+
+                // Update cycloid angle - use a fixed increment based on angular velocity
+                // The angle should progress independently of distance to create visible cycloids
+                const angleIncrement = this.angularVelocity * 0.1;
+                this.cycloidAngle += angleIncrement;
+
+                // Add to trail with cycloid offset
+                const cycloidX = this.x + Math.cos(this.cycloidAngle) * this.cycloidRadius;
+                const cycloidY = this.y + Math.sin(this.cycloidAngle) * this.cycloidRadius;
+
+                this.trail.push({
+                    x: cycloidX,
+                    y: cycloidY,
+                    size: this.size,
+                    angle: this.cycloidAngle
+                });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+
+                return false;
+            }
+
+            explode() {
+                this.exploded = true;
+
+                // Create explosion particles
+                const particleCount = 80;
+                for (let i = 0; i < particleCount; i++) {
+                    // Bias angles to spread more evenly in all directions
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = Math.random() * 3 + 1.5;
+                    const vx = Math.cos(angle) * velocity;
+                    const vy = Math.sin(angle) * velocity;
+                    const size = Math.random() * 0.5 + 0.25;
+                    const life = Math.random() * 60 + 30;
+
+                    // Use the firecracker color with some variation
+                    const hue = this.hexToHsl(this.color).h;
+                    const saturation = this.hexToHsl(this.color).s;
+                    const particleHue = (hue + Math.random() * 30 - 15) % 360;
+                    const particleColor = `hsl(${particleHue}, ${saturation}%, ${Math.random() * 40 + 60}%)`;
+
+                    this.particles.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: vx,
+                        vy: vy,
+                        size: size,
+                        color: particleColor,
+                        life: life
+                    });
+                }
+            }
+
+            hexToHsl(hex) {
+                // Convert hex to RGB first
+                let r = 0, g = 0, b = 0;
+                if (hex.length == 4) {
+                    r = parseInt(hex[1] + hex[1], 16);
+                    g = parseInt(hex[2] + hex[2], 16);
+                    b = parseInt(hex[3] + hex[3], 16);
+                } else if (hex.length == 7) {
+                    r = parseInt(hex[1] + hex[2], 16);
+                    g = parseInt(hex[3] + hex[4], 16);
+                    b = parseInt(hex[5] + hex[6], 16);
+                }
+
+                // Then to HSL
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h = 0, s, l = (max + min) / 2;
+
+                if (max == min) {
+                    h = s = 0; // achromatic
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    l: Math.round(l * 100)
+                };
+            }
+
+            draw() {
+                if (this.exploded) {
+                    // Draw explosion particles
+                    for (const p of this.particles) {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+                    }
+
+                    // Draw explosion glow using the firecracker color
+                    const rgb = this.hexToRgb(this.color);
+                    const gradient = ctx.createRadialGradient(
+                        this.x, this.y, 0,
+                        this.x, this.y, this.explosionRadius
+                    );
+                    gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`);
+                    gradient.addColorStop(0.7, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.05)`);
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.explosionRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    return;
+                }
+
+                // Draw cycloid trail
+                if (this.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+
+                    for (let i = 1; i < this.trail.length; i++) {
+                        const point = this.trail[i];
+                        ctx.lineTo(point.x, point.y);
+                    }
+
+                    const rgb = this.hexToRgb(this.color);
+                    ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6)`;
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+
+                    // Draw fading trail points
+                    for (let i = 0; i < this.trail.length; i++) {
+                        const point = this.trail[i];
+                        const alpha = i / this.trail.length;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 2 * (0.5 + alpha * 0.5), 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.5})`;
+                        ctx.fill();
+                    }
+                }
+
+                // Draw firecracker at actual position (not cycloid offset)
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                // Draw fuse glow
+                const rgb = this.hexToRgb(this.color);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
+                ctx.fill();
+            }
+
+            hexToRgb(hex) {
+                let r = 0, g = 0, b = 0;
+                if (hex.length == 4) {
+                    r = parseInt(hex[1] + hex[1], 16);
+                    g = parseInt(hex[2] + hex[2], 16);
+                    b = parseInt(hex[3] + hex[3], 16);
+                } else if (hex.length == 7) {
+                    r = parseInt(hex[1] + hex[2], 16);
+                    g = parseInt(hex[3] + hex[4], 16);
+                    b = parseInt(hex[5] + hex[6], 16);
+                }
+                return { r, g, b };
+            }
+        }
+
+        const firecrackers = [];
+        let lastFirecrackerTime = 0;
+
+        // Cursor sparkles
+        const sparkles = [];
+        const mouse = { x: 0, y: 0, lastMove: 0 };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            mouse.lastMove = Date.now();
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            if (touch) {
+                mouse.x = touch.clientX;
+                mouse.y = touch.clientY;
+                mouse.lastMove = Date.now();
+            }
+        }, { passive: true });
+
+        class Sparkle {
+            constructor(x, y) {
+                this.x = x + (Math.random() - 0.5) * 12;
+                this.y = y + (Math.random() - 0.5) * 12;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4 - 0.15; // drift gently upward
+                this.life = 1;
+                this.decay = 0.02 + Math.random() * 0.02;
+                this.size = 1.5 + Math.random() * 2.5;
+                this.rotation = Math.random() * Math.PI;
+                // Mostly gold/white, occasionally the current firework colour
+                const roll = Math.random();
+                this.color = roll < 0.3 ? currentColor : (roll < 0.65 ? '#ffd700' : '#ffffff');
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+                this.rotation += 0.05;
+                return this.life > 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(this.life, 0);
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 1;
+                const s = this.size * this.life;
+                ctx.beginPath();
+                ctx.moveTo(-s, 0);
+                ctx.lineTo(s, 0);
+                ctx.moveTo(0, -s);
+                ctx.lineTo(0, s);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        function animate() {
+            // Update preset interpolation
+            updateInterpolation();
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+                // No camera - use original behavior with black background
+                ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Update and draw firecrackers
+                for (let i = firecrackers.length - 1; i >= 0; i--) {
+                    const firecracker = firecrackers[i];
+                    const done = firecracker.update();
+                    firecracker.draw();
+
+                    if (done) {
+                        firecrackers.splice(i, 1);
+                    }
+                }
+
+                // Spawn sparkles at the cursor while it is moving
+                if (Date.now() - mouse.lastMove < 150 && sparkles.length < 120) {
+                    for (let i = 0; i < 2; i++) {
+                        sparkles.push(new Sparkle(mouse.x, mouse.y));
+                    }
+                }
+
+                // Update and draw sparkles
+                for (let i = sparkles.length - 1; i >= 0; i--) {
+                    if (!sparkles[i].update()) {
+                        sparkles.splice(i, 1);
+                    } else {
+                        sparkles[i].draw();
+                    }
+                }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Handle clicks
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            firecrackers.push(new Firecracker(x, y));
+        });
+
+        // Allow touch events for mobile
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.changedTouches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            firecrackers.push(new Firecracker(x, y));
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
+
+        // Auto-launch firecrackers with delay
+        function launchRandomFirecracker() {
+            const now = Date.now();
+            if (now - lastFirecrackerTime > currentDelay * 1000) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height * 0.5 + canvas.height * 0.25;
+                firecrackers.push(new Firecracker(x, y));
+                lastFirecrackerTime = now;
+            }
+            requestAnimationFrame(launchRandomFirecracker);
+        }
+
+        // Start animations
+        animate();
+        launchRandomFirecracker();
+
+        // Initialize delay display
+        delayDisplay.textContent = currentDelay.toFixed(1) + 's';
+    </script>
+</body>
+</html>
