@@ -334,7 +334,6 @@ permalink: /greetings/diwali/
             </div>
         </div>
 
-        <button class="camera-button" id="toggle-camera">Enable Camera</button>
         <button class="save-preset-button" id="save-preset">Save Preset</button>
         <button class="loop-button" id="loop-presets">Loop Presets</button>
         <div class="presets-section" id="presets-container">
@@ -343,6 +342,10 @@ permalink: /greetings/diwali/
     </div>
 
     <script>
+        const user = new URLSearchParams(window.location.search).get('to') || " To You!";
+        const instructions = document.getElementById("instructions");
+        instructions.innerText = "Happy Diwali " + user;
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const delaySlider = document.getElementById('delay');
@@ -365,12 +368,6 @@ permalink: /greetings/diwali/
         const speedValue = document.getElementById('speed-value');
         const angularVelocityValue = document.getElementById('angular-velocity-value');
 
-        // Camera controls
-        const cameraButton = document.getElementById('toggle-camera');
-        const cameraFeed = document.getElementById('camera-feed');
-        const segmentationCanvas = document.getElementById('segmentation-canvas');
-        const segmentationCtx = segmentationCanvas.getContext('2d');
-
         // Preset controls
         const savePresetButton = document.getElementById('save-preset');
         const loopButton = document.getElementById('loop-presets');
@@ -389,13 +386,6 @@ permalink: /greetings/diwali/
             strontium: { r: 255, g: 50, b: 0 },    // Red
             copperChloride: { r: 0, g: 150, b: 255 } // Blue
         };
-
-        // Camera system
-        let cameraStream = null;
-        let isCameraEnabled = false;
-        let bodyPixModel = null;
-        let tfLoaded = false;
-        let segmentationInterval = null;
 
         // Preset system
         let presets = [];
@@ -624,327 +614,12 @@ permalink: /greetings/diwali/
         presets.push(getCurrentConfig());
         renderPresets();
 
-        // Camera button
-        cameraButton.addEventListener('click', toggleCamera);
-
         // Save preset button
         savePresetButton.addEventListener('click', savePreset);
 
         // Loop button
         loopButton.addEventListener('click', toggleLoop);
 
-        // Toggle camera on/off
-        async function toggleCamera() {
-            if (isCameraEnabled) {
-                // Disable camera
-                stopCamera();
-                cameraButton.textContent = 'Enable Camera';
-                cameraButton.classList.remove('active');
-                isCameraEnabled = false;
-            } else {
-                // Enable camera
-                cameraButton.textContent = 'Loading...';
-                cameraButton.classList.add('loading');
-
-                try {
-                    // Check WebGL support
-                    const canvasTest = document.createElement('canvas');
-                    const gl = canvasTest.getContext('webgl') || canvasTest.getContext('experimental-webgl');
-                    if (!gl) {
-                        console.error('WebGL not supported in this browser');
-                        throw new Error('WebGL not supported');
-                    }
-                    
-                    // Request camera access
-                    cameraStream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            facingMode: 'user'
-                        }
-                    });
-
-                    cameraFeed.srcObject = cameraStream;
-
-                    // Wait for video to start playing
-                    await new Promise((resolve) => {
-                        cameraFeed.onloadedmetadata = () => {
-                            // Also wait for video to have actual dimensions
-                            if (cameraFeed.videoWidth === 0 || cameraFeed.videoHeight === 0) {
-                                // Sometimes metadata loads but dimensions are 0, wait a bit more
-                                setTimeout(resolve, 500);
-                            } else {
-                                resolve();
-                            }
-                        };
-                    });
-
-                    // Load TensorFlow.js and BodyPix
-                    await loadTfAndBodyPix();
-                    
-                    // Start segmentation
-                    startSegmentation();
-                    
-                    cameraButton.textContent = 'Disable Camera';
-                    cameraButton.classList.remove('loading');
-                    cameraButton.classList.add('active');
-                    isCameraEnabled = true;
-
-                } catch (error) {
-                    cameraButton.textContent = 'Enable Camera';
-                    cameraButton.classList.remove('loading');
-                    // Fallback to black background (door open for future)
-                }
-            }
-        }
-
-        // Load TensorFlow.js and BodyPix
-        async function loadTfAndBodyPix() {
-            if (tfLoaded) return;
-
-            // Load TensorFlow.js from CDN - use v2.8.5 for BodyPix compatibility
-            await new Promise((resolve, reject) => {
-                if (typeof tf !== 'undefined') {
-                    resolve();
-                    return;
-                }
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.8.5';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-            
-            // Set TF.js backend to CPU if WebGL fails
-            if (typeof tf !== 'undefined') {
-                try {
-                    await tf.setBackend('webgl');
-                } catch (e) {
-                    try {
-                        await tf.setBackend('cpu');
-                    } catch (e2) {
-                        throw e2;
-                    }
-                }
-            }
-            
-            // Load BodyPix from CDN
-            await new Promise((resolve, reject) => {
-                if (typeof bodyPix !== 'undefined') {
-                    resolve();
-                    return;
-                }
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@1.0.0';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-            
-            // Load model - use default configuration
-            bodyPixModel = await bodyPix.load();
-
-            tfLoaded = true;
-        }
-
-        // Offscreen canvas for BodyPix input
-        const offscreenCanvas = document.createElement('canvas');
-        const offscreenCtx = offscreenCanvas.getContext('2d');
-
-        // Process segmentation result
-        function processSegmentation(segmentation) {
-            // Draw segmentation mask to canvas
-            const mask = segmentation.data;
-            const width = segmentation.width;
-            const height = segmentation.height;
-
-            // Set segmentation canvas size to match
-            if (segmentationCanvas.width !== width || segmentationCanvas.height !== height) {
-                segmentationCanvas.width = width;
-                segmentationCanvas.height = height;
-            }
-
-            // Clear segmentation canvas
-            segmentationCtx.clearRect(0, 0, width, height);
-
-            // Clear segmentation canvas with transparent background
-            segmentationCtx.clearRect(0, 0, width, height);
-            
-            // Clear and draw camera to segmentation canvas
-            segmentationCtx.clearRect(0, 0, width, height);
-            segmentationCtx.drawImage(cameraFeed, 0, 0, width, height);
-            
-            // Get camera image data
-            const cameraData = segmentationCtx.getImageData(0, 0, width, height);
-            
-            // Create output with transparency
-            // BodyPix returns: 0 = background, 1 = person, 2 = uncertain
-            const outputImageData = segmentationCtx.createImageData(width, height);
-            
-            // Feathering parameters
-            const featherRadius = 3; // pixels
-            
-            for (let i = 0; i < mask.length; i++) {
-                const baseIndex = i * 4;
-                const x = i % width;
-                const y = Math.floor(i / width);
-                
-                // Copy RGB from camera
-                outputImageData.data[baseIndex] = cameraData.data[baseIndex];
-                outputImageData.data[baseIndex + 1] = cameraData.data[baseIndex + 1];
-                outputImageData.data[baseIndex + 2] = cameraData.data[baseIndex + 2];
-                
-                // Set alpha with feathering at edges
-                // BodyPix: 1 = person, 0 = background
-                if (mask[i] === 1) {
-                    // Person pixel - check if near background edge
-                    let minDist = featherRadius + 1;
-                    for (let dy = -featherRadius; dy <= featherRadius; dy++) {
-                        for (let dx = -featherRadius; dx <= featherRadius; dx++) {
-                            const nx = x + dx;
-                            const ny = y + dy;
-                            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                                const neighborIndex = ny * width + nx;
-                                if (mask[neighborIndex] === 0) {
-                                    // Found background neighbor - calculate distance
-                                    const dist = Math.sqrt(dx * dx + dy * dy);
-                                    minDist = Math.min(minDist, dist);
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Set alpha based on distance to edge
-                    if (minDist <= featherRadius) {
-                        // At edge - feather the alpha
-                        const alpha = Math.round(255 * (minDist / featherRadius));
-                        outputImageData.data[baseIndex + 3] = alpha;
-                    } else {
-                        // Inside person - fully opaque
-                        outputImageData.data[baseIndex + 3] = 255;
-                    }
-                } else {
-                    // Background pixel
-                    outputImageData.data[baseIndex + 3] = 0;
-                }
-            }
-            
-            // Put the masked image back to segmentation canvas
-            segmentationCtx.clearRect(0, 0, width, height);
-            segmentationCtx.putImageData(outputImageData, 0, 0);
-            
-            segmentationCtx.restore();
-        }
-
-        // Start segmentation loop
-        function startSegmentation() {
-            // Keep both camera feed and segmentation canvas hidden
-            // We only need them as sources, not for display
-            cameraFeed.style.display = 'none';
-            segmentationCanvas.style.display = 'none';
-
-            // Resize to match window
-            resizeCanvas();
-
-            // Wait for video to have valid dimensions
-            const waitForDimensions = () => {
-                if (cameraFeed.videoWidth > 0 && cameraFeed.videoHeight > 0) {
-                    // Set segmentation canvas to match video dimensions
-                    segmentationCanvas.width = cameraFeed.videoWidth;
-                    segmentationCanvas.height = cameraFeed.videoHeight;
-
-                    // Start processing frames
-                    processFrame();
-                } else {
-                    setTimeout(waitForDimensions, 100);
-                }
-            };
-            waitForDimensions();
-        }
-
-        // Process each frame
-        async function processFrame() {
-            if (!isCameraEnabled || !bodyPixModel || cameraFeed.readyState < 3) {
-                segmentationInterval = requestAnimationFrame(processFrame);
-                return;
-            }
-
-            // Check if video has valid dimensions
-            if (!cameraFeed.videoWidth || !cameraFeed.videoHeight || cameraFeed.videoWidth === 0 || cameraFeed.videoHeight === 0) {
-                segmentationInterval = requestAnimationFrame(processFrame);
-                return;
-            }
-
-            try {
-                // Draw camera to offscreen canvas with fixed dimensions
-                const inputWidth = cameraFeed.videoWidth || 640;
-                const inputHeight = cameraFeed.videoHeight || 480;
-
-                if (inputWidth === 0 || inputHeight === 0 || isNaN(inputWidth) || isNaN(inputHeight)) {
-                    segmentationInterval = requestAnimationFrame(processFrame);
-                    return;
-                }
-
-                offscreenCanvas.width = inputWidth;
-                offscreenCanvas.height = inputHeight;
-                offscreenCtx.drawImage(cameraFeed, 0, 0, inputWidth, inputHeight);
-
-                // Get segmentation - BodyPix v1.0.0+ uses estimatePersonSegmentation
-                // Use simplest call with no options
-                const segmentation = await bodyPixModel.estimatePersonSegmentation(offscreenCanvas);
-                processSegmentation(segmentation);
-
-            } catch (error) {
-                console.error('Frame processing error:', error);
-                // Try CPU backend if WebGL fails
-                if (error.message && error.message.includes('shader')) {
-                    try {
-                        await tf.setBackend('cpu');
-                        // Draw to offscreen canvas
-                        const inputWidth = cameraFeed.videoWidth || 640;
-                        const inputHeight = cameraFeed.videoHeight || 480;
-                        offscreenCanvas.width = inputWidth;
-                        offscreenCanvas.height = inputHeight;
-                        offscreenCtx.drawImage(cameraFeed, 0, 0, inputWidth, inputHeight);
-
-                        // Retry segmentation with CPU backend
-                        const segmentation = await bodyPixModel.estimatePersonSegmentation(offscreenCanvas);
-                        processSegmentation(segmentation);
-                    } catch (e2) {
-                        console.error('CPU backend also failed:', e2);
-                    }
-                    segmentationInterval = requestAnimationFrame(processFrame);
-                    return;
-                }
-                console.error('Segmentation error:', error);
-            }
-
-            // Continue loop
-            segmentationInterval = requestAnimationFrame(processFrame);
-        }
-
-        // Stop camera
-        function stopCamera() {
-            if (segmentationInterval) {
-                cancelAnimationFrame(segmentationInterval);
-                segmentationInterval = null;
-            }
-
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-
-            cameraFeed.srcObject = null;
-            cameraFeed.style.display = 'none';
-            segmentationCanvas.style.display = 'none';
-
-            // Clean up TF.js
-            if (tfLoaded && typeof tf !== 'undefined') {
-                tf.disposeVariables();
-                // Don't set tfLoaded to false - keep model loaded for next use
-            }
-        }
 
         // Loop through presets
         function toggleLoop() {
@@ -1006,16 +681,6 @@ permalink: /greetings/diwali/
             const controlsHeight = 60;
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight - controlsHeight;
-
-            // Update camera feed size
-            cameraFeed.style.width = `${window.innerWidth}px`;
-            cameraFeed.style.height = `${window.innerHeight - controlsHeight}px`;
-
-            // If camera is enabled, update segmentation canvas
-            if (isCameraEnabled && cameraFeed.videoWidth > 0) {
-                segmentationCanvas.width = cameraFeed.videoWidth;
-                segmentationCanvas.height = cameraFeed.videoHeight;
-            }
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
@@ -1286,34 +951,7 @@ permalink: /greetings/diwali/
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (isCameraEnabled && cameraFeed.readyState >= 3) {
-                // Camera is active - composite fireworks behind user
 
-                // Get display dimensions
-                const displayWidth = canvas.width;
-                const displayHeight = canvas.height;
-
-                // Draw firecrackers first (they go in the background)
-                for (let i = firecrackers.length - 1; i >= 0; i--) {
-                    const firecracker = firecrackers[i];
-                    const done = firecracker.update();
-                    firecracker.draw();
-
-                    if (done) {
-                        firecrackers.splice(i, 1);
-                    }
-                }
-
-                // Draw the segmented camera feed (person only) on top
-                // This will show the person with transparent background over the firecrackers
-                ctx.save();
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.drawImage(segmentationCanvas,
-                    0, 0, segmentationCanvas.width, segmentationCanvas.height,
-                    0, 0, displayWidth, displayHeight);
-                ctx.restore();
-
-            } else {
                 // No camera - use original behavior with black background
                 ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1328,7 +966,6 @@ permalink: /greetings/diwali/
                         firecrackers.splice(i, 1);
                     }
                 }
-            }
 
             requestAnimationFrame(animate);
         }
