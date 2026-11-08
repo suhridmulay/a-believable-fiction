@@ -1,5 +1,5 @@
 ---
-title: tokens tokens everywhere
+title: Tokens Tokens Everywhere
 description: experimenting with poetry for the first time
 published: Sun, 08 Nov 2026 15:30:00 GMT
 publishedISO: 2026-11-08T15:30:00.000Z
