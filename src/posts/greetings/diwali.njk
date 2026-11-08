@@ -54,7 +54,8 @@ permalink: /greetings/diwali/
             text-shadow: 0 0 10px rgba(255,255,255,0.5);
 
             font-family: 'Montez';
-            font-size: 48px;
+            font-size: clamp(32px, 5vw, 48px);
+            white-space: nowrap;
         }
 
         #controls {
@@ -157,11 +158,71 @@ permalink: /greetings/diwali/
             width: 150px;
         }
 
+        /* Chemical sliders: track and thumb tinted with each element's emission colour */
+        #barium { --chemical-color: #4dff66; }           /* BaCl — green */
+        #strontium { --chemical-color: #ff3322; }         /* Sr — red */
+        #copper-chloride { --chemical-color: #2299ff; }   /* CuCl — blue */
+
+        .chemical-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 20px;
+        }
+
+        .chemical-slider::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #1a1a2a, var(--chemical-color));
+        }
+
+        .chemical-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: var(--chemical-color);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 8px var(--chemical-color);
+        }
+
+        .chemical-slider::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #1a1a2a, var(--chemical-color));
+        }
+
+        .chemical-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--chemical-color);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 8px var(--chemical-color);
+        }
+
         .element-value {
             color: #aaa;
             font-size: 11px;
             text-align: right;
             min-width: 40px;
+        }
+
+        .path-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .path-preview-row .element-slider {
+            flex: 1;
+            width: auto;
+        }
+
+        #path-curve-preview {
+            flex-shrink: 0;
+            width: 48px;
+            height: 32px;
         }
 
         .color-preview {
@@ -384,6 +445,10 @@ permalink: /greetings/diwali/
                 width: 100%;
             }
 
+            .path-preview-row .element-slider {
+                width: auto;
+            }
+
             .color-preview {
                 margin-left: 0;
             }
@@ -392,11 +457,22 @@ permalink: /greetings/diwali/
                 margin-left: 0;
                 justify-content: center;
             }
+
+            /* Greeting: two lines — "Happy Diwali" / "To ..." */
+            #instructions {
+                white-space: normal;
+                font-size: clamp(36px, 11vw, 48px);
+                line-height: 1.15;
+            }
+
+            #instructions span {
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="instructions">Click anywhere to launch a firecracker!</div>
+    <div id="instructions"><span id="greeting-title">Happy Diwali</span><span id="greeting-to"> To You!</span></div>
     <video id="camera-feed" autoplay muted playsinline></video>
     <canvas id="segmentation-canvas"></canvas>
     <canvas id="canvas"></canvas>
@@ -412,18 +488,18 @@ permalink: /greetings/diwali/
 
         <div class="elements-section">
             <div class="control-group">
-                <label for="copper">Copper (Green)</label>
-                <input type="range" id="copper" min="0" max="100" value="30" class="element-slider">
-                <span id="copper-value" class="element-value">30%</span>
+                <label for="barium">Barium (Green)</label>
+                <input type="range" id="barium" min="0" max="100" value="30" class="element-slider chemical-slider">
+                <span id="barium-value" class="element-value">30%</span>
             </div>
             <div class="control-group">
                 <label for="strontium">Strontium (Red)</label>
-                <input type="range" id="strontium" min="0" max="100" value="70" class="element-slider">
+                <input type="range" id="strontium" min="0" max="100" value="70" class="element-slider chemical-slider">
                 <span id="strontium-value" class="element-value">70%</span>
             </div>
             <div class="control-group">
                 <label for="copper-chloride">CuCl₂ (Blue)</label>
-                <input type="range" id="copper-chloride" min="0" max="100" value="0" class="element-slider">
+                <input type="range" id="copper-chloride" min="0" max="100" value="0" class="element-slider chemical-slider">
                 <span id="copper-chloride-value" class="element-value">0%</span>
             </div>
             <div class="color-preview" id="mixed-color-preview"></div>
@@ -432,18 +508,24 @@ permalink: /greetings/diwali/
         <div class="path-section">
             <div class="control-group">
                 <label for="path-blend">Path Blend</label>
-                <input type="range" id="path-blend" min="0" max="100" value="0" class="element-slider">
+                <div class="path-preview-row">
+                    <input type="range" id="path-blend" min="0" max="100" value="0" class="element-slider">
+                    <svg id="path-curve-preview" viewBox="0 0 48 32" aria-hidden="true">
+                        <line x1="5" y1="27" x2="43" y2="5" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="3 3"/>
+                        <path id="path-curve" d="M5 27 L43 5" fill="none" stroke="#ff8833" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <span id="path-blend-value" class="element-value">0%</span>
             </div>
             <div class="control-group">
                 <label for="speed">Speed</label>
-                <input type="range" id="speed" min="2" max="20" value="8" class="element-slider">
-                <span id="speed-value" class="element-value">8</span>
+                <input type="range" id="speed" min="2" max="20" step="0.1" value="8" class="element-slider">
+                <span id="speed-value" class="element-value">8.0</span>
             </div>
             <div class="control-group">
                 <label for="angular-velocity">Angular Velocity</label>
-                <input type="range" id="angular-velocity" min="0.1" max="5" step="0.1" value="2" class="element-slider">
-                <span id="angular-velocity-value" class="element-value">2.0</span>
+                <input type="range" id="angular-velocity" min="0" max="1.5708" step="0.01" value="0.5" class="element-slider">
+                <span id="angular-velocity-value" class="element-value">0.50 rad</span>
             </div>
         </div>
 
@@ -455,20 +537,19 @@ permalink: /greetings/diwali/
     </div>
 
     <script>
-        const user = new URLSearchParams(window.location.search).get('to') || " To You!";
-        const instructions = document.getElementById("instructions");
-        instructions.innerText = "Happy Diwali " + user;
+        const user = new URLSearchParams(window.location.search).get('to') || "To You!";
+        document.getElementById("greeting-to").textContent = " " + user.trim();
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const delaySlider = document.getElementById('delay');
         const delayDisplay = document.getElementById('delay-display');
 
-        // Element sliders
-        const copperSlider = document.getElementById('copper');
+        // Chemical sliders
+        const bariumSlider = document.getElementById('barium');
         const strontiumSlider = document.getElementById('strontium');
         const copperChlorideSlider = document.getElementById('copper-chloride');
-        const copperValue = document.getElementById('copper-value');
+        const bariumValue = document.getElementById('barium-value');
         const strontiumValue = document.getElementById('strontium-value');
         const copperChlorideValue = document.getElementById('copper-chloride-value');
         const mixedColorPreview = document.getElementById('mixed-color-preview');
@@ -476,6 +557,7 @@ permalink: /greetings/diwali/
         // Path controls
         const pathBlendSlider = document.getElementById('path-blend');
         const pathBlendValue = document.getElementById('path-blend-value');
+        const pathCurve = document.getElementById('path-curve');
         const speedSlider = document.getElementById('speed');
         const angularVelocitySlider = document.getElementById('angular-velocity');
         const speedValue = document.getElementById('speed-value');
@@ -490,14 +572,14 @@ permalink: /greetings/diwali/
         let currentDelay = parseFloat(delaySlider.value);
         let currentColor = '#ff6600'; // Default orange
         let currentPathBlend = parseInt(pathBlendSlider.value) / 100; // 0 to 1
-        let currentSpeed = parseInt(speedSlider.value);
+        let currentSpeed = parseFloat(speedSlider.value);
         let currentAngularVelocity = parseFloat(angularVelocitySlider.value);
 
         // Element color definitions (real flame colors)
         const elementColors = {
-            copper: { r: 0, g: 255, b: 100 },      // Green
-            strontium: { r: 255, g: 50, b: 0 },    // Red
-            copperChloride: { r: 0, g: 150, b: 255 } // Blue
+            barium: { r: 77, g: 255, b: 102 },      // BaCl — green
+            strontium: { r: 255, g: 50, b: 0 },      // Sr — red
+            copperChloride: { r: 0, g: 150, b: 255 } // CuCl — blue
         };
 
         // Preset system
@@ -514,11 +596,11 @@ permalink: /greetings/diwali/
         // Get current config as an object
         function getCurrentConfig() {
             return {
-                copper: parseInt(copperSlider.value),
+                barium: parseInt(bariumSlider.value),
                 strontium: parseInt(strontiumSlider.value),
                 copperChloride: parseInt(copperChlorideSlider.value),
                 pathBlend: parseInt(pathBlendSlider.value),
-                speed: parseInt(speedSlider.value),
+                speed: parseFloat(speedSlider.value),
                 angularVelocity: parseFloat(angularVelocitySlider.value),
                 color: currentColor
             };
@@ -526,7 +608,8 @@ permalink: /greetings/diwali/
 
         // Apply config to UI
         function applyConfig(config) {
-            copperSlider.value = config.copper;
+            // config.copper fallback keeps presets saved before the Barium rename working
+            bariumSlider.value = config.barium ?? config.copper ?? 0;
             strontiumSlider.value = config.strontium;
             copperChlorideSlider.value = config.copperChloride;
             pathBlendSlider.value = config.pathBlend;
@@ -534,17 +617,18 @@ permalink: /greetings/diwali/
             angularVelocitySlider.value = config.angularVelocity;
 
             // Update display values
-            copperValue.textContent = config.copper + '%';
+            bariumValue.textContent = (config.barium ?? config.copper ?? 0) + '%';
             strontiumValue.textContent = config.strontium + '%';
             copperChlorideValue.textContent = config.copperChloride + '%';
             pathBlendValue.textContent = config.pathBlend + '%';
-            speedValue.textContent = config.speed;
-            angularVelocityValue.textContent = config.angularVelocity.toFixed(1);
+            speedValue.textContent = config.speed.toFixed(1);
+            angularVelocityValue.textContent = config.angularVelocity.toFixed(2) + ' rad';
 
             // Update mixed color
             updateMixedColor();
             mixedColorPreview.style.backgroundColor = config.color;
             currentColor = config.color;
+            updatePathCurve();
 
             // Update current settings
             currentPathBlend = config.pathBlend / 100;
@@ -569,11 +653,11 @@ permalink: /greetings/diwali/
             // Interpolate each value
             const startConfig = getCurrentConfig();
             const config = {
-                copper: Math.round(startConfig.copper + (targetConfig.copper - startConfig.copper) * interpolationProgress),
+                barium: Math.round(startConfig.barium + ((targetConfig.barium ?? targetConfig.copper ?? 0) - startConfig.barium) * interpolationProgress),
                 strontium: Math.round(startConfig.strontium + (targetConfig.strontium - startConfig.strontium) * interpolationProgress),
                 copperChloride: Math.round(startConfig.copperChloride + (targetConfig.copperChloride - startConfig.copperChloride) * interpolationProgress),
                 pathBlend: Math.round(startConfig.pathBlend + (targetConfig.pathBlend - startConfig.pathBlend) * interpolationProgress),
-                speed: Math.round(startConfig.speed + (targetConfig.speed - startConfig.speed) * interpolationProgress),
+                speed: startConfig.speed + (targetConfig.speed - startConfig.speed) * interpolationProgress,
                 angularVelocity: startConfig.angularVelocity + (targetConfig.angularVelocity - startConfig.angularVelocity) * interpolationProgress,
                 color: blendColors(startConfig.color, targetConfig.color, interpolationProgress)
             };
@@ -643,37 +727,38 @@ permalink: /greetings/diwali/
 
         // Update element values and mixed color
         function updateMixedColor() {
-            const copper = parseInt(copperSlider.value);
+            const barium = parseInt(bariumSlider.value);
             const strontium = parseInt(strontiumSlider.value);
             const copperChloride = parseInt(copperChlorideSlider.value);
 
             // Update display values
-            copperValue.textContent = copper + '%';
+            bariumValue.textContent = barium + '%';
             strontiumValue.textContent = strontium + '%';
             copperChlorideValue.textContent = copperChloride + '%';
 
-            // Calculate mixed color based on element ratios
-            const total = copper + strontium + copperChloride;
+            // Calculate mixed color based on chemical ratios
+            const total = barium + strontium + copperChloride;
             if (total === 0) {
                 // Default to orange if all are zero
                 currentColor = '#ff6600';
                 mixedColorPreview.style.backgroundColor = currentColor;
+                updatePathCurve();
                 return;
             }
 
             // Weighted average of RGB values
             const r = Math.round(
-                (copper * elementColors.copper.r +
+                (barium * elementColors.barium.r +
                  strontium * elementColors.strontium.r +
                  copperChloride * elementColors.copperChloride.r) / total
             );
             const g = Math.round(
-                (copper * elementColors.copper.g +
+                (barium * elementColors.barium.g +
                  strontium * elementColors.strontium.g +
                  copperChloride * elementColors.copperChloride.g) / total
             );
             const b = Math.round(
-                (copper * elementColors.copper.b +
+                (barium * elementColors.barium.b +
                  strontium * elementColors.strontium.b +
                  copperChloride * elementColors.copperChloride.b) / total
             );
@@ -681,6 +766,25 @@ permalink: /greetings/diwali/
             // Convert to hex
             currentColor = rgbToHex(r, g, b);
             mixedColorPreview.style.backgroundColor = currentColor;
+            updatePathCurve();
+        }
+
+        // Redraw the path curve preview: interpolates from a straight line
+        // to a parabola with the same math as the firecracker's flight path
+        function updatePathCurve() {
+            const blend = parseInt(pathBlendSlider.value) / 100;
+            const x0 = 5, y0 = 27, x1 = 43, y1 = 5;
+            const hump = 12 * blend;
+            const steps = 16;
+            let d = '';
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const x = x0 + (x1 - x0) * t;
+                const y = y0 + (y1 - y0) * t - hump * Math.sin(t * Math.PI);
+                d += (i === 0 ? 'M' : ' L') + x.toFixed(2) + ' ' + y.toFixed(2);
+            }
+            pathCurve.setAttribute('d', d);
+            pathCurve.style.stroke = currentColor;
         }
 
         // Helper function to convert RGB to hex
@@ -697,8 +801,8 @@ permalink: /greetings/diwali/
             delayDisplay.textContent = currentDelay.toFixed(1) + 's';
         });
 
-        // Element slider event listeners
-        copperSlider.addEventListener('input', updateMixedColor);
+        // Chemical slider event listeners
+        bariumSlider.addEventListener('input', updateMixedColor);
         strontiumSlider.addEventListener('input', updateMixedColor);
         copperChlorideSlider.addEventListener('input', updateMixedColor);
 
@@ -706,22 +810,24 @@ permalink: /greetings/diwali/
         pathBlendSlider.addEventListener('input', () => {
             currentPathBlend = parseInt(pathBlendSlider.value) / 100;
             pathBlendValue.textContent = pathBlendSlider.value + '%';
+            updatePathCurve();
         });
 
         speedSlider.addEventListener('input', () => {
-            currentSpeed = parseInt(speedSlider.value);
-            speedValue.textContent = currentSpeed;
+            currentSpeed = parseFloat(speedSlider.value);
+            speedValue.textContent = currentSpeed.toFixed(1);
         });
 
         angularVelocitySlider.addEventListener('input', () => {
             currentAngularVelocity = parseFloat(angularVelocitySlider.value);
-            angularVelocityValue.textContent = currentAngularVelocity.toFixed(1);
+            angularVelocityValue.textContent = currentAngularVelocity.toFixed(2) + ' rad';
         });
 
         // Initialize display values
         pathBlendValue.textContent = pathBlendSlider.value + '%';
-        speedValue.textContent = currentSpeed;
-        angularVelocityValue.textContent = currentAngularVelocity.toFixed(1);
+        speedValue.textContent = currentSpeed.toFixed(1);
+        angularVelocityValue.textContent = currentAngularVelocity.toFixed(2) + ' rad';
+        updatePathCurve();
 
         // Initialize presets with current config as first preset
         presets.push(getCurrentConfig());
