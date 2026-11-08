@@ -51,11 +51,30 @@ permalink: /greetings/diwali/
             color: #fff;
             text-align: center;
             pointer-events: none;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            text-shadow: 0 0 10px rgba(255, 190, 100, 0.5);
 
             font-family: 'Montez';
             font-size: clamp(32px, 5vw, 48px);
             white-space: nowrap;
+        }
+
+        /* Per-letter ember effect on the greeting text */
+        .letter-sparkle {
+            display: inline-block;
+            animation: letter-sparkle 2.5s ease-in-out infinite;
+        }
+
+        @keyframes letter-sparkle {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+                filter: blur(0);
+            }
+            50% {
+                transform: scale(var(--sparkle-zoom, 1.25));
+                opacity: var(--sparkle-fade, 0.3);
+                filter: blur(1px);
+            }
         }
 
         #controls {
@@ -465,7 +484,7 @@ permalink: /greetings/diwali/
                 line-height: 1.15;
             }
 
-            #instructions span {
+            #instructions > span {
                 display: block;
             }
         }
@@ -538,7 +557,30 @@ permalink: /greetings/diwali/
 
     <script>
         const user = new URLSearchParams(window.location.search).get('to') || "To You!";
-        document.getElementById("greeting-to").textContent = " " + user.trim();
+
+        // Split text into letters, each with its own random zoom/dissolve
+        // animation so it shimmers like explosion sparks
+        function sparkleize(element, text) {
+            element.textContent = '';
+            [...text].forEach((ch) => {
+                const letter = document.createElement('span');
+                letter.className = 'letter-sparkle';
+                letter.textContent = ch === ' ' ? '\u00A0' : ch;
+                // Warm ember tint: gold to orange, slightly different per letter
+                const hue = 20 + Math.random() * 25;
+                const sat = 80 + Math.random() * 20;
+                const light = 60 + Math.random() * 15;
+                letter.style.color = `hsl(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%)`;
+                letter.style.setProperty('--sparkle-zoom', (1.1 + Math.random() * 0.35).toFixed(2));
+                letter.style.setProperty('--sparkle-fade', (0.15 + Math.random() * 0.45).toFixed(2));
+                letter.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
+                letter.style.animationDuration = (1.8 + Math.random() * 2.2).toFixed(2) + 's';
+                element.appendChild(letter);
+            });
+        }
+
+        sparkleize(document.getElementById("greeting-title"), "Happy Diwali");
+        sparkleize(document.getElementById("greeting-to"), " " + user.trim());
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
