@@ -1,11 +1,11 @@
 ---
 title: tokens tokens everywhere
 description: experimenting with poetry for the first time
-published:
-publishedISO:
+published: Sun, 08 Nov 2026 15:30:00 GMT
+publishedISO: 2026-11-08T15:30:00.000Z
 layout: post.njk
 tags: post
-draft: true
+draft: false
 ---
 
 Tokens Tokens everywhere Not a thought to think, \
