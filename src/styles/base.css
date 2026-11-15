@@ -40,6 +40,22 @@ a {
 	font-family: var(--font-family-italics), cursive;
 }
 
+kbd {
+    border: 1px solid var(--subtitle-text-color);
+    border-radius: 4px;
+
+    min-width: 1em;
+    padding: 2px 5px;
+
+    box-shadow: 0 2px 1px var(--content-text-color);
+
+    cursor: pointer;
+
+    &:hover {
+        box-shadow: 0 1px 0px var(--content-text-color);
+    }
+}
+
 /* #region - responsive styles */
 .desktop-only {
 	@media screen and (width < 1280px) {
